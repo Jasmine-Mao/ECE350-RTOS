@@ -143,12 +143,42 @@ void UsageFault_Handler(void)
   */
 void SVC_Handler(void)
 {
-  /* USER CODE BEGIN SVCall_IRQn 0 */
+  __asm(
+    ".global SVC_Handler_Main\n"
+    "TST lr, #4\n"
+    "ITE EQ\n"
+    "MRSEQ r0, MSP\n"
+    "MRSNE r0, PSP\n"
+    "B SVC_Handler_Main\n"
+  ) ;
+}
 
-  /* USER CODE END SVCall_IRQn 0 */
-  /* USER CODE BEGIN SVCall_IRQn 1 */
+void SVC_Handler_Main( unsigned int *svc_args )
+{
+  unsigned int svc_number;
 
-  /* USER CODE END SVCall_IRQn 1 */
+  /*
+  * Stack contains:
+  * r0, r1, r2, r3, r12, r14, the return address and xPSR
+  * First argument (r0) is svc_args[0]
+  */
+  svc_number = ( ( char * )svc_args[ 6 ] )[ -2 ] ;
+  switch( svc_number )
+  {
+    case 0:  /* EnablePrivilegedMode */
+      __set_CONTROL( __get_CONTROL( ) & ~CONTROL_nPRIV_Msk ) ;  // this shouldnt give us problems according to the ta, follow up if issues happen
+      break;
+    case 1:
+      // everytime we need a new system call, add a new case to handle the new thingy
+      _ICSR |= 1<<28; //control register bit for a PendSV interrupt
+      __asm("isb");
+      // gets us to the pend svc thing which does the actual context switching
+
+      break;
+    default:    /* unknown SVC */
+    // add different svc cases for the different things we need to handle
+      break;
+  }
 }
 
 /**
@@ -169,12 +199,12 @@ void DebugMon_Handler(void)
   */
 void PendSV_Handler(void)
 {
-  /* USER CODE BEGIN PendSV_IRQn 0 */
-
-  /* USER CODE END PendSV_IRQn 0 */
-  /* USER CODE BEGIN PendSV_IRQn 1 */
-
-  /* USER CODE END PendSV_IRQn 1 */
+  printf("I'm here :D\n");
+  __asm(
+    "MRS R0, PSP\n"             // store into R0 the program stack pointer
+    "STMDB R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
+    "B *function*\n"
+  );
 }
 
 /**
