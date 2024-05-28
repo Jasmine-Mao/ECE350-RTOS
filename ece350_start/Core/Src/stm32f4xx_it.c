@@ -63,6 +63,36 @@
 /******************************************************************************/
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
+
+void get_new_task(/*pass in some queue obj*/){
+  // check the size of the queue
+  // if it's not max and not empty, keep going
+
+  // pop off a new task
+  // return stack_high of the TCb we just popped
+}
+
+int store_old_task(/*TCB of the old task we are storing*/){
+  // check if there;'s room in the queue
+    // if there's no room, then we panic
+    // if we have exceeded the max size, return 0
+  // push the old task onto the queue
+  // return 1 if we successsfully piush the old task onto the queue
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
   * @brief This function handles Non maskable interrupt.
   */
@@ -203,7 +233,7 @@ void PendSV_Handler(void)
   __asm(
     "MRS R0, PSP\n"             // store into R0 the program stack pointer
     "STMDB R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
-    "B *function*\n"
+    "B get_new_task\n"
   );
 }
 
