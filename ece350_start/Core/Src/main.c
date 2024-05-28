@@ -32,6 +32,11 @@ typedef unsigned short U16;
 typedef char U8;
 typedef unsigned int task_t;
 
+MAX_STACK_SIZE = 0x4000;
+MAIN_STACK_SIZE = 0x400;
+THREAD_STACK_SIZE = 0x400;
+
+
 typedef struct task_control_block{
   void (*ptask)(void* args); //entry address
   U32 stack_high; //starting address of stack (high address)
@@ -42,6 +47,8 @@ typedef struct task_control_block{
 } TCB;
 
 
+uint32_t* MSP_INIT_VAL = *(uint32_t**)0x0;
+printf("MSP Init is: %p\r\n",MSP_INIT_VAL); //note the %p to print a
 
 
 /**
@@ -69,7 +76,11 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  //printf("Hello, world!\r\n");
+	  printf("Hello, world!\r\n");
+    printf("Hello, world!\r\n");
+	  printf("MSP Init is: %p\r\n",MSP_INIT_VAL);
+	  //MSP Init is: 0x20018000
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
