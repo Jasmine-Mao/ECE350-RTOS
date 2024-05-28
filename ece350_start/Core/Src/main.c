@@ -63,13 +63,13 @@ int main(void)
   MX_USART2_UART_Init();
   /* MCU Configuration is now complete. Start writing your code below this line */
 
-
+  SVC_Handler();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
-	  printf("Hello, world!\r\n");
+	  //printf("Hello, world!\r\n");
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
