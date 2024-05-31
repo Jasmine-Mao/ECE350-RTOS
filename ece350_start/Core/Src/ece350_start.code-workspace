@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "group44-lab",
+			"path": "../../.."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"queue.h": "c"
+		}
+	}
+}

@@ -64,7 +64,7 @@
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 
-void get_new_task(/*pass in some queue obj*/){
+void scheduler(){
   // check the size of the queue
   // if it's not max and not empty, keep going
 
