@@ -66,6 +66,13 @@
 
 void scheduler(){
   // check the size of the queue
+  // if (!queue_is_empty){
+  //    
+  //}
+  // otherwise comes here and exits back to the ARM stuff
+
+
+
   // if it's not max and not empty, keep going
 
   // pop off a new task
@@ -209,6 +216,16 @@ void SVC_Handler_Main( unsigned int *svc_args )
     // delete the storing stuff cuz there's nothing to store if nothing is running
     // this is what kernal start should be doing        
       break;
+    case 2:
+      // call scheduler to get the next task (first taslk)
+      __asm(
+        "MRS R0, PSP\n"             // move into R0 the PSP
+        "LDMIA R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
+        "MSR PSP, R0\n"
+        "MOV LR, 0xFFFFFFFD\n"
+        "BX LR\n"
+      );
+    break;
     default:    /* unknown SVC */
     // add different svc cases for the different things we need to handle
       break;
@@ -246,6 +263,14 @@ void PendSV_Handler(void)
     "BX LR\n"
   );
 }
+
+// void first_task_handler(void){
+//   printf("setting up the first task\n");
+//   __asm(
+
+
+//   );
+// }
 
 /**
   * @brief This function handles System tick timer.
