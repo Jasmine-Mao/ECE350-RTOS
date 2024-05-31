@@ -89,6 +89,36 @@ int store_old_task(/*TCB of the old task we are storing*/){
   // return 1 if we successsfully piush the old task onto the queue
 }
 
+void osKernelInit(void){
+  //initialize variables
+  initialized = 1;
+  osKernelStart();
+  return;
+}
+int osKernelStart(void){
+  if (first_run && initialized){
+    first_run = 0;
+    SVC_Handler();
+  }
+  else return RTX_ERR;
+}
+int osTaskInfo(task_t TID, TCB* task_copy){
+
+}
+task_t getTID (void){
+
+}
+int osTaskExit(void){
+  
+}
+
+
+int osCreateTask(TCB* task){
+
+}
+void osYield(void){
+
+}
 
 
 
