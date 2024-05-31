@@ -277,13 +277,13 @@ void PendSV_Handler(void)
   __asm(
     "MRS R0, PSP\n"             // store into R0 the program stack pointer
     "STMDB R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
-    "MSR PSP, R0\n"
-    "B scheduler\n"
+    "MSR PSP, R0\n"             // move the value in R0 into the PSP
+    "B scheduler\n"             // branch to the scheduler function
     "MRS R0, PSP\n"             // move into R0 the PSP
-    "LDMIA R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
-    "MSR PSP, R0\n"
-    "MOV LR, 0xFFFFFFFD\n"
-    "BX LR\n"
+    "LDMIA R0! {R4, R11}\n"     // load r4 to r11 from the memory spaces above r0
+    "MSR PSP, R0\n"             // move the value in R0 into the PSP
+    "MOV LR, 0xFFFFFFFD\n"      //move the magic number into LR
+    "BX LR\n"                   // branch to LR
   );
 }
 
