@@ -3,11 +3,16 @@
 
 #include <stdbool.h>
 
+// Node structure for the linked list
+typedef struct QueueNode {
+    void *data;
+    struct QueueNode *next;
+} QueueNode;
+
 // Define the structure for the queue
 typedef struct {
-    void **data;
-    int head;
-    int tail;
+    QueueNode *front;
+    QueueNode *rear;
     int size;
     int max_size;
 } Queue;
