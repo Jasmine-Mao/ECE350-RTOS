@@ -78,6 +78,17 @@ int stack_starting_address(int thread_number){
   return our_address_value;
 }
 
+void assign_TID(TCB* task){
+  // iterate through the atomic array
+  for(int i = 1; i < 16; i++){
+    if(TID_taken[i] == 0){
+      task->tid = i;
+      TID_taken[i] = 1;
+      return;
+    }
+  }
+}
+
 void scheduler(){
   if(!is_empty(task_queue)){
     if(current_task != NULL){                     // if the task we're currently working on needs to continue running at a later point
