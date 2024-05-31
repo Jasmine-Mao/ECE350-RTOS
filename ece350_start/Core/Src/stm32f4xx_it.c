@@ -100,6 +100,7 @@ void osKernelInit(void){
   osKernelStart();
   return;
 }
+
 int osKernelStart(void){
   if (first_run && initialized){
     first_run = 0;
@@ -107,12 +108,21 @@ int osKernelStart(void){
   }
   else return RTX_ERR;
 }
+
 int osTaskInfo(task_t TID, TCB* task_copy){
-
+  TCB* temp = task_queue.search(TID);
+  if (temp != NULL){
+    task_copy->info = temp->info;
+    return RTX_OK;
+  }
+  else return RTX_ERR;
 }
+
 task_t getTID (void){
-
+  if (!first_run && initialized) return current_task->TID;
+  else return 0;
 }
+
 int osTaskExit(void){
   
 }
