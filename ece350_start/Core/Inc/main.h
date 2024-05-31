@@ -29,6 +29,13 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+MAX_STACK_SIZE = 0x4000;
+MAIN_STACK_SIZE = 0x400;
+THREAD_STACK_SIZE = 0x400;
+
+uint32_t* MSP_INIT_VAL = *(uint32_t**)0x0;
+
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 

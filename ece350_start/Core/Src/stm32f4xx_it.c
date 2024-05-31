@@ -66,6 +66,18 @@
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 
+int stack_starting_address(int thread_number){
+  int our_address_value;
+  if(thread_number == 1){
+    return (int)MSP_INIT_VAL - MAIN_STACK_SIZE;
+  }
+  else{
+    int retrieved_address_value = stack_starting_address(thread_number--);
+    our_address_value = retrieved_address_value - THREAD_STACK_SIZE;
+  }
+  return our_address_value;
+}
+
 void scheduler(){
   if(!is_empty(task_queue)){
     if(current_task != NULL){                     // if the task we're currently working on needs to continue running at a later point

@@ -34,12 +34,9 @@ typedef unsigned short U16;
 typedef char U8;
 typedef unsigned int task_t;
 
-MAX_STACK_SIZE = 0x4000;
-MAIN_STACK_SIZE = 0x400;
-THREAD_STACK_SIZE = 0x400;
 
 
-uint32_t* MSP_INIT_VAL = *(uint32_t**)0x0;
+
 printf("MSP Init is: %p\r\n",MSP_INIT_VAL); //note the %p to print a
 
 /**
