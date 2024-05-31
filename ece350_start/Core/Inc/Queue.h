@@ -1,18 +1,22 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include <stdbool.h>
+
+// Define the structure for the queue
 typedef struct {
-    void *data;
+    void **data;
     int head;
     int tail;
-    int max_size;
     int size;
+    int max_size;
 } Queue;
 
-Queue create_queue(int max_size);
-void enqueue(Queue queue, voiditem);
-void* dequeue(Queue queue);
-int is_empty(Queuequeue);
-int is_full(Queue *queue);
+Queue* create_queue(int max_size);
+void enqueue(Queue *queue, void *item);
+void* dequeue(Queue *queue);
+bool is_empty(Queue *queue);
+bool is_full(Queue *queue);
+void free_queue(Queue *queue);
 
 #endif // QUEUE_H
