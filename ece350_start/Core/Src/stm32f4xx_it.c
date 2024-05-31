@@ -20,6 +20,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
+#include "Queue.h"
+#include "globals.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -65,6 +67,9 @@
 /******************************************************************************/
 
 void scheduler(){
+  if(!is_empty(task_queue)){
+    current_task = 
+  }
   // check the size of the queue
   // if (!queue_is_empty){
   //    
