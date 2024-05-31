@@ -133,6 +133,7 @@ int osTaskExit(void){
 
 
 int osCreateTask(TCB* task){
+  //register with RTX
   assign_TID(task);
   task->stack_high = stack_starting_address(task->TID);
   int stackptr = task->stack_high;
