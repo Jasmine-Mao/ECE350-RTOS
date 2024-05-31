@@ -58,7 +58,6 @@ typedef struct task_control_block{
   //your own fields at the end
 } TCB;
 
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 

@@ -68,30 +68,9 @@
 
 void scheduler(){
   if(!is_empty(task_queue)){
-    current_task = 
+    current_task = dequeue(task_queue);
+    __set_PSP(*current_task->stack_high);
   }
-  // check the size of the queue
-  // if (!queue_is_empty){
-  //    
-  //}
-  // otherwise comes here and exits back to the ARM stuff
-
-
-
-  // if it's not max and not empty, keep going
-
-  // pop off a new task
-
-  // set the PSP to new SP of task 2
-  // return stack_high of the TCb we just popped
-}
-
-int store_old_task(/*TCB of the old task we are storing*/){
-  // check if there;'s room in the queue
-    // if there's no room, then we panic
-    // if we have exceeded the max size, return 0
-  // push the old task onto the queue
-  // return 1 if we successsfully piush the old task onto the queue
 }
 
 void osKernelInit(void){
@@ -134,7 +113,6 @@ int osCreateTask(TCB* task){
 void osYield(void){
 
 }
-
 
 
 
@@ -300,7 +278,7 @@ void PendSV_Handler(void)
     "MRS R0, PSP\n"             // store into R0 the program stack pointer
     "STMDB R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
     "MSR PSP, R0\n"
-    "B get_new_task\n"
+    "B scheduler\n"
     "MRS R0, PSP\n"             // move into R0 the PSP
     "LDMIA R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
     "MSR PSP, R0\n"
