@@ -23,7 +23,7 @@
 #include "globals.h"
 
 #define TID_NULL 0 //predefined Task ID for the NULL task
-#define MAX_TASKS 16 //maximum number of tasks in the system
+#define MAX_TASKS 16 //maximum number of tasks in the system1
 #define STACK_SIZE 0x200 //min. size of each task’s stack
 #define DORMANT 0 //state of terminated task
 #define READY 1 //state of task that can be scheduled but is not running
@@ -48,15 +48,6 @@ printf("MSP Init is: %p\r\n",MSP_INIT_VAL); //note the %p to print a
   */
 int main(void)
 {
-  // instantiate a task queue
-  // tasl_queue is a global variable; remains un-instantiated until we create the queue. otherwise is just a queue pointer
-  task_queue = create_queue(MAX_TASKS);
-  // we can queue up new tasks as needed
-
-  // set up current task
-
-
-
   /* MCU Configuration: Don't change this or the whole chip won't work!*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */

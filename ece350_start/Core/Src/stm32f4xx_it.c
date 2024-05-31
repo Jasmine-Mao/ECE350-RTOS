@@ -68,7 +68,10 @@
 
 void scheduler(){
   if(!is_empty(task_queue)){
-    current_task = dequeue(task_queue);
+    if(current_task != NULL){                     // if the task we're currently working on needs to continue running at a later point
+      enqueue(task_queue, current_task);          // move the currently running task back onto the task queue
+    }
+    current_task = dequeue(task_queue);         // pop off a task from the task queue and set that as the currently running task
     __set_PSP(current_task->stack_high);
   }
 }
@@ -77,7 +80,6 @@ void osKernelInit(void){
   //initialize variables
   initialized = 1;
   osKernelStart();
-  return;
 }
 
 int osKernelStart(void){
