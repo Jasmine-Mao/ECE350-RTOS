@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include <stdio.h> //You are permitted to use this library, but currently only printf is implemented. Anything else is up to you!
+#include "Queue.h"
+#include "globals.h"
 
 #define TID_NULL 0 //predefined Task ID for the NULL task
 #define MAX_TASKS 16 //maximum number of tasks in the system
@@ -40,15 +42,21 @@ THREAD_STACK_SIZE = 0x400;
 uint32_t* MSP_INIT_VAL = *(uint32_t**)0x0;
 printf("MSP Init is: %p\r\n",MSP_INIT_VAL); //note the %p to print a
 
-
-
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
-  current_task
+  // instantiate a task queue
+  // tasl_queue is a global variable; remains un-instantiated until we create the queue. otherwise is just a queue pointer
+  task_queue = create_queue(MAX_TASKS);
+  // we can queue up new tasks as needed
+
+  // set up current task
+
+
+
   /* MCU Configuration: Don't change this or the whole chip won't work!*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
