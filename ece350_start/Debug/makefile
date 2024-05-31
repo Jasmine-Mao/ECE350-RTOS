@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (11.3.rel1)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -60,8 +60,8 @@ all: main-build
 main-build: ece350_start.elf secondary-outputs
 
 # Tool invocations
-ece350_start.elf ece350_start.map: $(OBJS) $(USER_OBJS) C:\Users\nexususer\OneDrive\ -\ University\ of\ Waterloo\courses\ece350\lab_stm\starter_code_for_students\ece350_start\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "ece350_start.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\nexususer\OneDrive - University of Waterloo\courses\ece350\lab_stm\starter_code_for_students\ece350_start\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ece350_start.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+ece350_start.elf ece350_start.map: $(OBJS) $(USER_OBJS) C:\Users\ujako\Desktop\ECE350\group44-lab\ece350_start\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "ece350_start.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\ujako\Desktop\ECE350\group44-lab\ece350_start\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ece350_start.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

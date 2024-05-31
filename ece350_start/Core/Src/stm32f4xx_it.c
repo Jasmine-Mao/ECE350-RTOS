@@ -69,7 +69,7 @@
 void scheduler(){
   if(!is_empty(task_queue)){
     current_task = dequeue(task_queue);
-    __set_PSP(*current_task->stack_high);
+    __set_PSP(current_task->stack_high);
   }
 }
 
@@ -108,6 +108,15 @@ int osTaskExit(void){
 
 
 int osCreateTask(TCB* task){
+  
+  TCB *tcb = new TCB;
+  tcb->stack = Stack(INITIAL_STACK_SIZE);
+  tcb->sp = tcb->stack + INITIAL_STACK_SIZE;
+  tcb->pc = stub;
+  *(--tcb->sp) = args;
+  *(--tcb->sp) = func;
+  tcb->state = READY;
+  readyList.add(tcb);
 
 }
 void osYield(void){
