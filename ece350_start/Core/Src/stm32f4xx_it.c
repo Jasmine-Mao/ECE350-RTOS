@@ -133,15 +133,12 @@ int osTaskExit(void){
 
 
 int osCreateTask(TCB* task){
-  
-  TCB *tcb = new TCB;
-  tcb->stack = Stack(INITIAL_STACK_SIZE);
-  tcb->sp = tcb->stack + INITIAL_STACK_SIZE;
-  tcb->pc = stub;
-  *(--tcb->sp) = args;
-  *(--tcb->sp) = func;
-  tcb->state = READY;
-  readyList.add(tcb);
+  assign_TID(task);
+  task->stack_high = stack_starting_address(task->TID);
+  int stackptr = task->stack_high;
+  *(--stackptr) = 1<<24; //This is xPSR, setting the chip to Thumb mode
+  *(--stackptr) = (uint32_t)print_continuously; //the function name
+  for (int i = 0; i < 14; i++) *(--stackptr) = 0xA; //An arbitrary number, repeat this 14 times in total
 
 }
 void osYield(void){
