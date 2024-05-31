@@ -69,6 +69,8 @@ void get_new_task(/*pass in some queue obj*/){
   // if it's not max and not empty, keep going
 
   // pop off a new task
+
+  // set the PSP to new SP of task 2
   // return stack_high of the TCb we just popped
 }
 
@@ -203,7 +205,9 @@ void SVC_Handler_Main( unsigned int *svc_args )
       _ICSR |= 1<<28; //control register bit for a PendSV interrupt
       __asm("isb");
       // gets us to the pend svc thing which does the actual context switching
-
+    // make a new case for when we are running the vcery first task ever
+    // delete the storing stuff cuz there's nothing to store if nothing is running
+    // this is what kernal start should be doing        
       break;
     default:    /* unknown SVC */
     // add different svc cases for the different things we need to handle
@@ -233,7 +237,13 @@ void PendSV_Handler(void)
   __asm(
     "MRS R0, PSP\n"             // store into R0 the program stack pointer
     "STMDB R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
+    "MSR PSP, R0\n"
     "B get_new_task\n"
+    "MRS R0, PSP\n"             // move into R0 the PSP
+    "LDMIA R0! {R4, R11}\n"     // store r4 to r11 into the memory spaces above r0
+    "MSR PSP, R0\n"
+    "MOV LR, 0xFFFFFFFD\n"
+    "BX LR\n"
   );
 }
 
