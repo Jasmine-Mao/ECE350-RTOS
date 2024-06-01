@@ -22,6 +22,9 @@
 #include "stm32f4xx_it.h"
 #include "Queue.h"
 #include "globals.h"
+
+typedef unsigned int task_t;
+#define MAX_TASKS 16
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -106,20 +109,34 @@ void osKernelInit(void){
 }
 
 int osKernelStart(void){
-  if (first_run && initialized){
+  if (first_run && initialized){ 
     first_run = 0;
     SVC_Handler();
   }
   else return RTX_ERR;
 }
 
-int osTaskInfo(task_t TID, TCB* task_copy){
-  TCB* temp = task_queue.search(TID);
-  if (temp != NULL){
-    task_copy->info = temp->info;
-    return RTX_OK;
+int osTaskInfo(task_t TID, TCB* task_copy){ 
+  if (TID < 0 || TID >= MAX_TASKS) { //check if the TID is valid
+        return RTX_ERR;
+    }
+  QueueNode* current = task_queue->front; //iterate through the task queue
+  while (current != NULL){ //find the task with the matching TID
+    TCB* temp = current->data; //get the task
+    if(temp->tid == TID){ //if the TID matches, copy the task info
+      *task_copy = *temp;
+      return RTX_OK;
+    }
+    current = current->next; //move to the next task
   }
-  else return RTX_ERR;
+  return RTX_ERR;
+
+  // TCB* temp = task_queue.search(TID);
+  // if (temp != NULL){
+  //   task_copy->info = temp->info;
+  //   return RTX_OK;
+  // }
+  // else return RTX_ERR;
 }
 
 task_t getTID (void){
