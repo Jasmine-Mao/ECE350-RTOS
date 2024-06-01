@@ -140,9 +140,12 @@ int osTaskInfo(task_t TID, TCB* task_copy){
 }
 
 task_t getTID (void){
-  if (!first_run && initialized) return current_task->TID;
-  else return 0;
+  if (!first_run && initialized){
+    return current_task->tid;
+  }
+  else return RTX_ERR;
 }
+
 
 int osTaskExit(void){
   
