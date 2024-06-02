@@ -18,10 +18,8 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
 #include "stm32f4xx_it.h"
-#include "Queue.h"
-#include "globals.h"
+#include "common.h"
 
 typedef unsigned int task_t;
 #define MAX_TASKS 16

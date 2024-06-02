@@ -56,14 +56,7 @@ uint32_t* MSP_INIT_VAL = *(uint32_t**)0x0;
 
 /* USER CODE END EM */
 
-typedef struct task_control_block{
-  void (*ptask)(void* args); //entry address
-  U32 stack_high; //starting address of stack (high address)
-  task_t tid; //task ID
-  U8 state; //task's state
-  U16 stack_size; //stack size. Must be a multiple of 8
-  //your own fields at the end
-} TCB;
+
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);

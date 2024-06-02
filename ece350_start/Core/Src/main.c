@@ -19,8 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include <stdio.h> //You are permitted to use this library, but currently only printf is implemented. Anything else is up to you!
-#include "Queue.h"
-#include "globals.h"
+#include "common.h"
 
 #define TID_NULL 0 //predefined Task ID for the NULL task
 #define MAX_TASKS 16 //maximum number of tasks in the system1
