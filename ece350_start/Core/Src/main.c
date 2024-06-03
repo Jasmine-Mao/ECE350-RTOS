@@ -21,18 +21,6 @@
 #include <stdio.h> //You are permitted to use this library, but currently only printf is implemented. Anything else is up to you!
 #include "common.h"
 
-#define TID_NULL 0 //predefined Task ID for the NULL task
-#define MAX_TASKS 16 //maximum number of tasks in the system1
-#define STACK_SIZE 0x200 //min. size of each task’s stack
-#define DORMANT 0 //state of terminated task
-#define READY 1 //state of task that can be scheduled but is not running
-#define RUNNING 2 //state of running task 
-
-typedef unsigned int U32;
-typedef unsigned short U16;
-typedef char U8;
-typedef unsigned int task_t;
-
 
 
 

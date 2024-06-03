@@ -20,9 +20,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
 #include "common.h"
+#include "main.h"
 
-typedef unsigned int task_t;
-#define MAX_TASKS 16
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */

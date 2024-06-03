@@ -10,6 +10,7 @@
  */
 #include <stdatomic.h>
 #include "Queue.h"
+#include "main.h"
 #ifndef INC_COMMON_H_
 #define INC_COMMON_H_
 
