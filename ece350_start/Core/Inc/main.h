@@ -29,27 +29,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-MAX_STACK_SIZE = 0x4000;
-MAIN_STACK_SIZE = 0x400;
-THREAD_STACK_SIZE = 0x400;
-
-#define TID_NULL 0 //predefined Task ID for the NULL task
-#define MAX_TASKS 16 //maximum number of tasks in the system1
-#define STACK_SIZE 0x200 //min. size of each task’s stack
-#define DORMANT 0 //state of terminated task
-#define READY 1 //state of task that can be scheduled but is not running
-#define RUNNING 2 //state of running task 
-#define RTX_ERR -1 //error code for RTX functions
-#define RTX_OK 0 //success code for RTX functions
-
-typedef unsigned int U32;
-typedef unsigned short U16;
-typedef char U8;
-typedef unsigned int task_t;
-
-uint32_t* MSP_INIT_VAL = *(uint32_t**)0x0;
-
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -69,8 +48,6 @@ uint32_t* MSP_INIT_VAL = *(uint32_t**)0x0;
 /* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
-
-
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
