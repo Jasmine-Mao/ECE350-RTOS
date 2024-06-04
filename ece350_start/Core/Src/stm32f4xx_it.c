@@ -152,7 +152,7 @@ int osTaskExit(void){
 int osCreateTask(TCB* task){
   //register with RTX
   assign_TID(task);
-  task->stack_high = stack_starting_address(task->TID);
+  task->stack_high = stack_starting_address(task->tid);
   int stackptr = task->stack_high;
   *(--stackptr) = 1<<24; //This is xPSR, setting the chip to Thumb mode
   *(--stackptr) = (uint32_t)print_continuously; //the function name
