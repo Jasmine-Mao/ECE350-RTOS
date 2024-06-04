@@ -39,6 +39,8 @@ THREAD_STACK_SIZE = 0x400;
 #define DORMANT 0 //state of terminated task
 #define READY 1 //state of task that can be scheduled but is not running
 #define RUNNING 2 //state of running task 
+#define RTX_ERR -1 //error code for RTX functions
+#define RTX_OK 0 //success code for RTX functions
 
 typedef unsigned int U32;
 typedef unsigned short U16;
