@@ -5,12 +5,15 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 S_SRCS += \
+../Core/Startup/pend_sv_arm.s \
 ../Core/Startup/startup_stm32f401retx.s 
 
 OBJS += \
+./Core/Startup/pend_sv_arm.o \
 ./Core/Startup/startup_stm32f401retx.o 
 
 S_DEPS += \
+./Core/Startup/pend_sv_arm.d \
 ./Core/Startup/startup_stm32f401retx.d 
 
 
@@ -21,7 +24,7 @@ Core/Startup/%.o: ../Core/Startup/%.s Core/Startup/subdir.mk
 clean: clean-Core-2f-Startup
 
 clean-Core-2f-Startup:
-	-$(RM) ./Core/Startup/startup_stm32f401retx.d ./Core/Startup/startup_stm32f401retx.o
+	-$(RM) ./Core/Startup/pend_sv_arm.d ./Core/Startup/pend_sv_arm.o ./Core/Startup/startup_stm32f401retx.d ./Core/Startup/startup_stm32f401retx.o
 
 .PHONY: clean-Core-2f-Startup
 

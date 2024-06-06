@@ -9,6 +9,7 @@
  *      header, then any C functions you write must go into a corresponding c file that you create in the Core->Src folder
  */
 #include <stdatomic.h>
+#include "kernel.h"
 
 #ifndef INC_COMMON_H_
 #define INC_COMMON_H_
@@ -41,23 +42,5 @@ typedef struct task_control_block{
   //your own fields at the end
   task_t next;
 } TCB;
-
-
-//typedef struct {
-//    TCB *front;
-//    TCB *rear;
-//    TCB *next;
-//    int size;
-//    int max_size;
-//} Queue;
-//
-//Queue* create_queue(int max_size);
-//void enqueue(Queue *queue, void *item);
-//void* dequeue(Queue *queue);
-//int is_empty(Queue *queue);
-//int is_full(Queue *queue);
-//void free_queue(Queue *queue);
-
-
 
 #endif /* INC_COMMON_H_ */

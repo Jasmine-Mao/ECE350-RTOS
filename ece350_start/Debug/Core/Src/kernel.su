@@ -1,0 +1,12 @@
+../Core/Src/kernel.c:23:5:stack_starting_address	24	static
+../Core/Src/kernel.c:35:6:assign_TID	24	static
+../Core/Src/kernel.c:46:5:is_empty	16	static
+../Core/Src/kernel.c:53:7:find_TCB	24	static
+../Core/Src/kernel.c:62:6:scheduler	16	static,ignoring_inline_asm
+../Core/Src/kernel.c:69:5:osKernelStart	8	static,ignoring_inline_asm
+../Core/Src/kernel.c:83:6:osKernelInit	8	static
+../Core/Src/kernel.c:93:5:osTaskInfo	16	static
+../Core/Src/kernel.c:106:8:getTID	4	static
+../Core/Src/kernel.c:115:5:osTaskExit	8	static
+../Core/Src/kernel.c:126:5:osCreateTask	24	static
+../Core/Src/kernel.c:139:6:osYield	8	static,ignoring_inline_asm
