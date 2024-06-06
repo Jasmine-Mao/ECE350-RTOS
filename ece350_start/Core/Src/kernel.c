@@ -112,9 +112,15 @@ task_t getTID (void){
 
 
 
-//int osTaskExit(void){
-//
-//}
+int osTaskExit(void){
+  if (!first_run && initialized){
+    current_task->state = DORMANT;
+    states[current_task->tid] = 0;
+    scheduler();
+    return RTX_OK;
+  }
+  else return RTX_ERR;
+}
 
 
 int osCreateTask(TCB* task){
