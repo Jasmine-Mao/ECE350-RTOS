@@ -1,7 +1,8 @@
 #include "stm32f4xx_it.h"
 #include "common.h"
 #include "main.h"
-
+#include "kernel.h"
+#include <stdio.h>
 U32* MSP_INIT_VAL;
 //= *(U32**)0x0;
 // ^gets set when kernel init runs
@@ -64,7 +65,23 @@ void scheduler(){
   }
 }
 
-void osKernelInit(void){
+int osKernelStart(){
+  if (first_run && initialized){
+    first_run = 0;
+    SVC_Handler();
+    // how do we parse the arguments for the svc handler??
+    printf("kernel start finished ok!\r\n");
+    return RTX_OK;
+  }
+  else {
+	  printf("panic: start failed\r\n");
+
+	  return RTX_ERR;
+  }
+}
+
+void osKernelInit(int max_tasks){
+  printf("inside kernelinit!\r\n");
   //initialize variables
   MSP_INIT_VAL = *(U32**)0x0;
   current_task = NULL;
@@ -73,25 +90,17 @@ void osKernelInit(void){
   osKernelStart();
 }
 
-int osKernelStart(void){
-  if (first_run && initialized){
-    first_run = 0;
-    SVC_Handler();
-  }
-  else return RTX_ERR;
-}
-
 int osTaskInfo(task_t TID, TCB* task_copy){
   if (TID < 0 || TID >= MAX_TASKS) { //check if the TID is valid
         return RTX_ERR;
 	  for (int i = 1; i < MAX_TASKS; i++){
 		  if(task_queue[i].tid == TID){ //if the TID matches, copy the task info
-		        task_copy = &task_queue[i];
+		        task_copy = &task_queue[i];		//address of the task copy pointer now points to the found TCB
 		        return RTX_OK;
 		      }
 	  }
-  return RTX_ERR;
   }
+  return RTX_ERR;
 }
 
 task_t getTID (void){
@@ -103,9 +112,9 @@ task_t getTID (void){
 
 
 
-int osTaskExit(void){
-
-}
+//int osTaskExit(void){
+//
+//}
 
 //
 //int osCreateTask(TCB* task){

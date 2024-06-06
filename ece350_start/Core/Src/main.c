@@ -21,17 +21,13 @@
 #include <stdio.h> //You are permitted to use this library, but currently only printf is implemented. Anything else is up to you!
 #include "common.h"
 
-
-
-
-printf("MSP Init is: %p\r\n",MSP_INIT_VAL); //note the %p to print a
-
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
+
   /* MCU Configuration: Don't change this or the whole chip won't work!*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -43,19 +39,16 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* MCU Configuration is now complete. Start writing your code below this line */
+  osKernelInit(MAX_TASKS);
 
-  SVC_Handler();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
 	  printf("Hello, world!\r\n");
-    printf("Hello, world!\r\n");
-	  printf("MSP Init is: %p\r\n",MSP_INIT_VAL);
-	  //MSP Init is: 0x20018000
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
+
