@@ -113,13 +113,13 @@ task_t getTID (void){
 
 
 int osTaskExit(void){
-  if (!first_run && initialized){
+  if (!first_run && initialized){ 
     current_task->state = DORMANT;
     states[current_task->tid] = 0;
     scheduler();
-    return RTX_OK;
+    return RTX_OK; 
   }
-  else return RTX_ERR;
+  else return RTX_ERR; 
 }
 
 
@@ -132,6 +132,10 @@ int osCreateTask(TCB* task){
 }
 
 void osYield(void){
-
+  //tentative
+  if (!first_run && initialized){
+    SVC_Handler();
+  }
+  else printf("panic: yield failed\r\n");
 
 }
