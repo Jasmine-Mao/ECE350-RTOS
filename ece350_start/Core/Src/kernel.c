@@ -116,17 +116,15 @@ task_t getTID (void){
 //
 //}
 
-//
-//int osCreateTask(TCB* task){
-//  //register with RTX
-//  assign_TID(task);
-//  task->stack_high = stack_starting_address(task->TID);
-//  int stackptr = task->stack_high;
-//  *(--stackptr) = 1<<24; //This is xPSR, setting the chip to Thumb mode
-//  *(--stackptr) = (uint32_t)print_continuously; //the function name
-//  for (int i = 0; i < 14; i++) *(--stackptr) = 0xA; //An arbitrary number, repeat this 14 times in total
-//
-//}
+
+int osCreateTask(TCB* task){
+ assign_TID(task);
+ task->stack_high = stack_starting_address(task->tid);
+ *(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
+ *(--task->stack_high) = (uint32_t)(task->ptask); //the function name
+ for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
+}
+
 void osYield(void){
 
 
