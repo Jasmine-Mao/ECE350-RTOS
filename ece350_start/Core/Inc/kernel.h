@@ -3,12 +3,14 @@
 
 #include "common.h"
 
-void osKernelInit(int max_tasks);
-int osKernelStart();
-int osTaskInfo(task_t tid, TCB* task_copy);
-task_t osGetTID(void);
-void osTaskExit(void);
-task_t osCreateTask(void (*task_func)(void*), void *args, uint32_t *stack, uint16_t stack_size);
+void osKernelInit(void);
+int osKernelStart(void);
+int osTaskInfo(task_t TID, TCB* task_copy);
+task_t getTID (void);
+int osTaskExit(void);
+
+
+int osCreateTask(TCB* task);
 void osYield(void);
 
 int is_empty();
