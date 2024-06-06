@@ -40,7 +40,13 @@ typedef struct task_control_block{
   U8 state; //task's state
   U16 stack_size; //stack size. Must be a multiple of 8
   //your own fields at the end
-  task_t next;
+  task_t next;	// stores the tid of the next task
 } TCB;
+
+typedef struct state_and_address_info{
+	int state;
+	// state 1 -> available
+	// state 2 -> ready
+	// state 3 -> running};
 
 #endif /* INC_COMMON_H_ */

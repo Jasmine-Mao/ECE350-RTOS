@@ -39,7 +39,7 @@ int main(void) {
   };
 
   if (osCreateTask(&mytask) != RTX_OK) { //if successful this should have updated the user's copy with the TID assigned
-    printf("FAIL: osCreateTask failed\r\n");
+    printf("FAIL: osCreateTask failed 1\r\n");
     return 0;
   }
 

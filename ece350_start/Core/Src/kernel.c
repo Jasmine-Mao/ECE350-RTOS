@@ -12,24 +12,25 @@ int first_run = 1;
 int task_counter = 0;
 
 int states[MAX_TASKS] = {0};      // size of the array is defined by max tasks in main.c; 0 if not taken, 1 if taken
-// state 0 -> dormant
 // state 1 -> available
-// state 2 -> active
-// state 3 ->
+// state 2 -> ready
+// state 3 -> running
 
-TCB task_queue[MAX_TASKS];
+TCB task_queue[MAX_TASKS] = {NULL};
 
 
 int stack_starting_address(int thread_number){
-  int our_address_value;
-  if(thread_number == 1){
-    return (int)MSP_INIT_VAL - MAIN_STACK_SIZE;
-  }
-  else{
-    int retrieved_address_value = stack_starting_address(thread_number--);
-    our_address_value = retrieved_address_value - THREAD_STACK_SIZE;
-  }
-  return our_address_value;
+//  int our_address_value;
+//  if(thread_number == 1){
+//    return ((int)MSP_INIT_VAL - MAIN_STACK_SIZE);
+//  }
+//  else{
+//    int retrieved_address_value = stack_starting_address(thread_number--);
+//    our_address_value = retrieved_address_value - THREAD_STACK_SIZE;
+//  }
+//  return our_address_value;
+
+
 }
 
 void assign_TID(TCB* task){
@@ -93,12 +94,12 @@ void osKernelInit(){
 int osTaskInfo(task_t TID, TCB* task_copy){
   if (TID < 0 || TID >= MAX_TASKS) { //check if the TID is valid
         return RTX_ERR;
-	  for (int i = 1; i < MAX_TASKS; i++){
-		  if(task_queue[i].tid == TID){ //if the TID matches, copy the task info
-		        task_copy = &task_queue[i];		//address of the task copy pointer now points to the found TCB
-		        return RTX_OK;
-		      }
-	  }
+  }
+  for (int i = 1; i < MAX_TASKS; i++){
+	  if(task_queue[i].tid == TID){ //if the TID matches, copy the task info
+			task_copy = &task_queue[i];		//address of the task copy pointer now points to the found TCB
+			return RTX_OK;
+		  }
   }
   return RTX_ERR;
 }
@@ -113,23 +114,24 @@ task_t getTID (void){
 
 
 int osTaskExit(void){
-  if (!first_run && initialized){ 
+  if (!first_run && initialized){
     current_task->state = DORMANT;
     states[current_task->tid] = 0;
     scheduler();
-    return RTX_OK; 
+    return RTX_OK;
   }
-  else return RTX_ERR; 
+  else return RTX_ERR;
 }
 
 
 int osCreateTask(TCB* task){
-if (task != NULL && task_counter < MAX_TASKS && task->stack_size < STACK_SIZE){
+if (task != NULL && task_counter < MAX_TASKS && task->stack_size > STACK_SIZE && task->stack_size < MAX_STACK_SIZE){	// the stacksize of the given task has double the size of the specified stack size from common.h
  assign_TID(task);
- *task->stack_high = stack_starting_address(task->tid);
+ task->stack_high = stack_starting_address(task->tid);
  *(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
  *(--task->stack_high) = (uint32_t)(task->ptask); //the function name
  for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
+ task->state = 1;
  task_counter++;
  return RTX_OK;
 }

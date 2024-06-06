@@ -142,8 +142,9 @@ void UsageFault_Handler(void)
 /**
     * @brief This function handles System service call via SWI instruction.
     */
-void SVC_Handler(void)
+__attribute__((naked)) void SVC_Handler(void)
 {
+
     __asm(
         ".global SVC_Handler_Main\n"
         "TST lr, #4\n"
@@ -167,8 +168,10 @@ void SVC_Handler_Main( unsigned int *svc_args )
     switch( svc_number )
     {
         case 0:    /* EnablePrivilegedMode */
-            __set_CONTROL( __get_CONTROL( ) & ~CONTROL_nPRIV_Msk ) ;    // this shouldnt give us problems according to the ta, follow up if issues happen
-            break;
+            //__set_CONTROL( __get_CONTROL( ) & ~CONTROL_nPRIV_Msk ) ;    // this shouldnt give us problems according to the ta, follow up if issues happen
+            printf("in case 0 of the svc handler\r\n");
+
+        	break;
         case 1:
             // case to enter pend_sv
             SCB->ICSR |= 1<<28; //control register bit for a PendSV interrupt
@@ -184,6 +187,10 @@ void SVC_Handler_Main( unsigned int *svc_args )
                 "BX LR\n"
             );
         break;
+
+        case 255:
+        	printf("HELP\n");
+        	break;
         default:        /* unknown SVC */
         // add different svc cases for the different things we need to handle
             break;
