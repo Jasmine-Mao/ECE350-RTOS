@@ -9,7 +9,6 @@ U32* MSP_INIT_VAL;
 TCB* current_task;
 int initialized = 0;
 int first_run = 1;
-int task_counter = 0;
 
 int states[MAX_TASKS] = {0};      // size of the array is defined by max tasks in main.c; 0 if not taken, 1 if taken
 // state 0 -> dormant
@@ -62,14 +61,15 @@ TCB * find_TCB(task_t tid_input){
 void scheduler(){
   if(!is_empty()){
     current_task = find_TCB(current_task->next);         // pop off a task from the task queue and set that as the currently running task
-    __set_PSP(*current_task->stack_high);
+    __set_PSP(current_task->stack_high);
   }
 }
 
 int osKernelStart(){
   if (first_run && initialized){
     first_run = 0;
-    __asm("SVC #0");
+    SVC_Handler();
+    // how do we parse the arguments for the svc handler??
     printf("kernel start finished ok!\r\n");
     return RTX_OK;
   }
@@ -80,7 +80,7 @@ int osKernelStart(){
   }
 }
 
-void osKernelInit(){
+void osKernelInit(int max_tasks){
   printf("inside kernelinit!\r\n");
   //initialize variables
   MSP_INIT_VAL = *(U32**)0x0;
@@ -124,22 +124,17 @@ int osTaskExit(void){
 
 
 int osCreateTask(TCB* task){
-if (task != NULL && task_counter < MAX_TASKS && task->stack_size < STACK_SIZE){
  assign_TID(task);
- *task->stack_high = stack_starting_address(task->tid);
+ task->stack_high = stack_starting_address(task->tid);
  *(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
  *(--task->stack_high) = (uint32_t)(task->ptask); //the function name
  for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
- task_counter++;
- return RTX_OK;
-}
-else return RTX_ERR;
 }
 
 void osYield(void){
   //tentative
   if (!first_run && initialized){
-	  __asm("SVC #1");
+    SVC_Handler();
   }
   else printf("panic: yield failed\r\n");
 

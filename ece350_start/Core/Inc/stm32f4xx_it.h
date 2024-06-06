@@ -57,6 +57,16 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 /* USER CODE BEGIN EFP */
 
+void osKernelInit(void);
+int osKernelStart(void);
+int osTaskInfo(task_t TID, TCB* task_copy);
+task_t getTID (void);
+int osTaskExit(void);
+
+
+int osCreateTask(TCB* task);
+void osYield(void);
+
 /* USER CODE END EFP */
 
 #ifdef __cplusplus
