@@ -123,9 +123,10 @@ void osKernelInit(){
 
 int osTaskInfo(task_t TID, TCB* task_copy){
   if (TID < 0 || TID >= MAX_TASKS) { //check if the TID is valid
-        return RTX_ERR;
+      return RTX_ERR;
   }
   for (int i = 1; i < MAX_TASKS; i++){
+	  printf("%x\n", task_queue[i].tid);
 	  if(task_queue[i].tid == TID){ //if the TID matches, copy the task info
 			task_copy = &task_queue[i];		//address of the task copy pointer now points to the found TCB
 			return RTX_OK;
@@ -134,7 +135,7 @@ int osTaskInfo(task_t TID, TCB* task_copy){
   return RTX_ERR;
 }
 
-task_t getTID (void){
+task_t osGetTID (void){
   if (!first_run && initialized){
     return current_task->tid;
   }
