@@ -161,7 +161,7 @@ int osTaskExit(void){
 
 
 int osCreateTask(TCB* task){
-if (task != NULL && task_counter < MAX_TASKS && task->stack_size > STACK_SIZE && task->stack_size < MAX_STACK_SIZE){	// the stacksize of the given task has double the size of the specified stack size from common.h
+if (task != NULL && task_counter < MAX_TASKS && task->stack_size >= STACK_SIZE && task->stack_size <= MAX_STACK_SIZE){	// the stacksize of the given task has double the size of the specified stack size from common.h
  assign_TID(task);
  task->state = 1;
  get_stack_address(task);
