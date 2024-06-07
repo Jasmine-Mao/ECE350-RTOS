@@ -10,6 +10,7 @@ TCB* current_task;
 int initialized = 0;
 int first_run = 1;
 int task_counter = 0;
+int current_tid_index = 0;
 
 int states[MAX_TASKS] = {0};      // size of the array is defined by max tasks in main.c; 0 if not taken, 1 if taken
 // state 1 -> available
@@ -60,12 +61,24 @@ TCB * find_TCB(task_t tid_input){
 	return NULL;
 }
 
-void scheduler(){
-  if(!is_empty()){
-    current_task = find_TCB(current_task->next);         // pop off a task from the task queue and set that as the currently running task
-    __set_PSP(*current_task->stack_high);
-  }
+void scheduler() {
+    if (!is_empty()) {
+        int start_index = current_tid_index; // Save the starting index
+        do {
+            current_tid_index = (current_tid_index + 1) % MAX_TASKS; // Increment the index
+
+            if (current_tid_index == 0) { //If we reach null task, skip it
+                current_tid_index = 1;
+            }
+            if (states[current_tid_index] == 1) { //If the task is available/ready
+                current_task = &task_queue[current_tid_index]; // Same as old scheduler
+                __set_PSP(*current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
+                return;
+            }
+        } while (current_tid_index != start_index); // Loop until we come back to the start index so we don't do infinite loop
+    }
 }
+
 
 int osKernelStart(){
   if (first_run && initialized){
