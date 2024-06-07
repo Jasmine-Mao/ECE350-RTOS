@@ -128,7 +128,12 @@ int osTaskInfo(task_t TID, TCB* task_copy){
   for (int i = 1; i < MAX_TASKS; i++){
 	  printf("%x\n", task_queue[i].tid);
 	  if(task_queue[i].tid == TID){ //if the TID matches, copy the task info
-			task_copy = &task_queue[i];		//address of the task copy pointer now points to the found TCB
+			task_copy->next = task_queue[i].next;		//address of the task copy pointer now points to the found TCB
+			task_copy->ptask = task_queue[i].ptask;
+			task_copy->stack_high = task_queue[i].stack_high;
+			task_copy->stack_size = task_queue[i].stack_size;
+			task_copy->state = task_queue[i].state;
+			task_copy->tid = task_queue[i].tid;
 			return RTX_OK;
 		  }
   }
