@@ -44,9 +44,11 @@ typedef struct task_control_block{
 } TCB;
 
 typedef struct state_and_address_info{
-	int state;
-	// state 1 -> available
-	// state 2 -> ready
-	// state 3 -> running};
+	int occupied;
+	U32* stack_address;
+	U16 stack_size;
+} STATE_ADDRESS_INFO;
+
+
 
 #endif /* INC_COMMON_H_ */
