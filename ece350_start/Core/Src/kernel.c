@@ -163,6 +163,12 @@ if (task != NULL && task_counter < MAX_TASKS && task->stack_size > STACK_SIZE &&
  *(--task->stack_high) = (uint32_t)(task->ptask); //the function name
  for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
  task->state = 1;
+ for (int i = 1; i < MAX_TASKS; i++){
+ 	  if(!task_queue[i].state){ //if the TID matches, copy the task info
+ 			task_queue[i] = *task;
+ 			break;
+ 		  }
+   }
  task_counter++;
  return RTX_OK;
 }
