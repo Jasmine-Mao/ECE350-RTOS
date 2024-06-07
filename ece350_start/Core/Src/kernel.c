@@ -26,26 +26,26 @@ TCB task_queue[MAX_TASKS] = {NULL};
 
 
 int get_stack_address(TCB* task){
-	if(task_counter == 0){
-		// unique case where the very first task comes
-		task->stack_high = (int)MSP_INIT_VAL - task->stack_size;
-		address_tracking[0] = (struct state_and_address_info){ .stack_address = task->stack_high, .stack_size = task->stack_size, .occupied = 1 };
-		return RTX_OK;
-	}
-	else{
-		for(int i = 1; i++; i < 16){
-			if(address_tracking[i].stack_address == NULL){
-				// reach here if we have found an element in the array that we can directly place the address info
-				task->stack_high = address_tracking[i - 0].stack_address - address_tracking[i - 1].stack_size;
-				address_tracking[i] = (struct state_and_address_info){ .stack_address = task->stack_high, .stack_size = task->stack_size, .occupied = 1 };
-				return RTX_OK;
+	for(int i = 1; i < MAX_TASKS; i++){
+		if(task_queue[i].stack_high == NULL && task_queue[i].state == 0){
+			// if the address has not yet been set
+			if(task_counter == 0){
+				// the very first thread
+				task->stack_high = (int)MSP_INIT_VAL - task->stack_size;
 			}
-			else if(address_tracking[i].occupied == 0 && address_tracking[i].stack_size <= task->stack_size){
-				// if the state of the task at the index is dormant AND there is enough room to place the threads stack
-				task->stack_high = address_tracking[i].stack_address;
-				address_tracking[i].occupied = 1;
-				return RTX_OK;
+			else{
+				// look at the previous thread and make calculations that way
+				task->stack_high = task_queue[i - 1].stack_high - task->stack_size;
 			}
+			// set t\state here
+			task_queue[i] = *task;
+			return RTX_OK;
+		}
+		else if(task_queue[i].state == 0 && task_queue[i].stack_size >= task->stack_size){
+			// if the address and size have already been set
+			task->stack_size = task_queue[i].stack_size;
+			task_queue[i] = *task;
+			return RTX_OK;
 		}
 	}
 	return RTX_ERR;
@@ -163,17 +163,17 @@ int osTaskExit(void){
 int osCreateTask(TCB* task){
 if (task != NULL && task_counter < MAX_TASKS && task->stack_size > STACK_SIZE && task->stack_size < MAX_STACK_SIZE){	// the stacksize of the given task has double the size of the specified stack size from common.h
  assign_TID(task);
+ task->state = 1;
  get_stack_address(task);
  *(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
  *(--task->stack_high) = (uint32_t)(task->ptask); //the function name
  for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
- task->state = 1;
- for (int i = 1; i < MAX_TASKS; i++){
- 	  if(!task_queue[i].state){ //if the TID matches, copy the task info
- 			task_queue[i] = *task;
- 			break;
- 		  }
-   }
+// for (int i = 1; i < MAX_TASKS; i++){
+// 	  if(!task_queue[i].state){ //if the TID matches, copy the task info
+// 			task_queue[i] = *task;
+// 			break;
+// 		  }
+//   }
  task_counter++;
  return RTX_OK;
 }
