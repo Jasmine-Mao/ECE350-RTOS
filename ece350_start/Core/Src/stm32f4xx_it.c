@@ -157,7 +157,7 @@ __attribute__((naked)) void SVC_Handler(void)
     ) ;
 }
 
-__attribute__((naked)) void SVC_Handler_Main( unsigned int *svc_args )
+void SVC_Handler_Main( unsigned int *svc_args )
 {
     unsigned int svc_number;
 

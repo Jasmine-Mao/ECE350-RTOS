@@ -83,6 +83,7 @@ void scheduler() {
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
                 __set_PSP(current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
                 __asm("SVC #2");
+                // should be able to return from here after the svc call
                 return;
             }
         } while (current_tid_index != start_index); // Loop until we come back to the start index so we don't do infinite loop
