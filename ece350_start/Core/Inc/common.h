@@ -40,7 +40,6 @@ typedef struct task_control_block{
   U8 state; //task's state
   U16 stack_size; //stack size. Must be a multiple of 8
   //your own fields at the end
-  task_t next;	// stores the tid of the next task
 } TCB;
 
 #endif /* INC_COMMON_H_ */

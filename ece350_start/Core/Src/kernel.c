@@ -77,7 +77,12 @@ void scheduler() {
             if (current_tid_index == 0) { //If we reach null task, skip it
                 current_tid_index = 1;
             }
-            if (task_queue[current_task->tid].state == 1) { //If the task is available/ready
+            if (current_task == NULL){
+            	current_task = &task_queue[0]; // Same as old scheduler
+            	__set_PSP(*current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
+            	return;
+            }
+            else if (task_queue[current_task->tid].state == 1) { //If the task is available/ready
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
                 __set_PSP(*current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
                 return;
@@ -90,6 +95,7 @@ void scheduler() {
 int osKernelStart(){
   if (first_run && initialized){
     first_run = 0;
+    scheduler();
     __asm("SVC #0");
     printf("kernel start finished ok!\r\n");
     return RTX_OK;
@@ -106,9 +112,7 @@ void osKernelInit(){
   //initialize variables
   MSP_INIT_VAL = *(U32**)0x0;
   current_task = NULL;
-
   initialized = 1;
-  osKernelStart();
 }
 
 int osTaskInfo(task_t TID, TCB* task_copy){
@@ -118,7 +122,6 @@ int osTaskInfo(task_t TID, TCB* task_copy){
   for (int i = 1; i < MAX_TASKS; i++){
 	  printf("%x\n", task_queue[i].tid);
 	  if(task_queue[i].tid == TID){ //if the TID matches, copy the task info
-			task_copy->next = task_queue[i].next;		//address of the task copy pointer now points to the found TCB
 			task_copy->ptask = task_queue[i].ptask;
 			task_copy->stack_high = task_queue[i].stack_high;
 			task_copy->stack_size = task_queue[i].stack_size;
@@ -144,6 +147,7 @@ int osTaskExit(void){
     current_task->state = DORMANT;
     task_queue[current_task->tid].state = 0;
     scheduler();
+    //__asm("SVC #2");
     return RTX_OK;
   }
   else return RTX_ERR;
@@ -165,7 +169,6 @@ else return RTX_ERR;
 }
 
 void osYield(void){
-  //tentative
   if (!first_run && initialized){
 	  __asm("SVC #1");
   }
