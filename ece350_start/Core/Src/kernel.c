@@ -88,7 +88,6 @@ void scheduler() {
             	task_queue[current_tid_index].state = 2;
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
                 __set_PSP(current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
-                __asm("SVC #2");
                 // should be able to return from here after the svc call
                 return;
             }
@@ -101,7 +100,7 @@ int osKernelStart(){
   if (first_run && initialized){
     first_run = 0;
     scheduler();
-    //__asm("SVC #0");
+    __asm("SVC #2");
     printf("kernel start finished ok!\r\n");
     return RTX_OK;
   }
@@ -151,7 +150,7 @@ int osTaskExit(void){
     current_task->state = DORMANT;
     task_queue[current_task->tid].state = 0;
     scheduler();
-    //__asm("SVC #2");
+    __asm("SVC #2");
     return RTX_OK;
   }
   else return RTX_ERR;
@@ -170,6 +169,7 @@ else return RTX_ERR;
 
 void osYield(void){
   if (!first_run && initialized){
+	  task_queue[current_task->tid].state = 1;
 	  __asm("SVC #1");
   }
   else printf("panic: yield failed\r\n");
