@@ -178,6 +178,7 @@ void SVC_Handler_Main( unsigned int *svc_args )
             // case to enter pend_sv
             SCB->ICSR |= 1<<28; //control register bit for a PendSV interrupt
             __asm("isb");
+            PendSV_Handler();
             break;
         case 2:
         	// case when the current running task doesn't need to be stored

@@ -28,6 +28,9 @@ int get_stack_address(TCB* task){
 			}
 			// set t\state here
 			task->state = 1;
+			*(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
+			*(--task->stack_high) = (uint32_t)(task->ptask); //the function name
+			for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat
 			task_queue[i] = *task;
 			return RTX_OK;
 		}
@@ -35,6 +38,9 @@ int get_stack_address(TCB* task){
 			// if the address and size have already been set
 			task->stack_size = task_queue[i].stack_size;
 			task->state = 1;
+			*(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
+			*(--task->stack_high) = (uint32_t)(task->ptask); //the function name
+			for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
 			task_queue[i] = *task;
 			return RTX_OK;
 		}
@@ -81,7 +87,7 @@ void scheduler() {
             if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
             	task_queue[current_tid_index].state = 2;
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
-                __set_PSP(current_task->ptask); // please check referencing/defrencing here  and aboveI have no clue
+                __set_PSP(current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
                 __asm("SVC #2");
                 // should be able to return from here after the svc call
                 return;
@@ -156,10 +162,6 @@ int osCreateTask(TCB* task){
 if (task != NULL && task_counter < MAX_TASKS && task->stack_size >= STACK_SIZE && task->stack_size <= MAX_STACK_SIZE){	// the stacksize of the given task has double the size of the specified stack size from common.h
  assign_TID(task);
  get_stack_address(task);
- *(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
- *(--task->stack_high) = (uint32_t)(task->ptask); //the function name
- for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
-
  task_counter++;
  return RTX_OK;
 }
