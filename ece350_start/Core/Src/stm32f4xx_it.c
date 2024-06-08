@@ -21,6 +21,8 @@
 #include "main.h"
 #include "stm32f4xx_it.h"
 #include <stdio.h>
+
+extern void Case2(void);
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -155,7 +157,7 @@ __attribute__((naked)) void SVC_Handler(void)
     ) ;
 }
 
-void SVC_Handler_Main( unsigned int *svc_args )
+__attribute__((naked)) void SVC_Handler_Main( unsigned int *svc_args )
 {
     unsigned int svc_number;
 
@@ -179,13 +181,7 @@ void SVC_Handler_Main( unsigned int *svc_args )
             break;
         case 2:
         	// case when the current running task doesn't need to be stored
-            __asm(
-                "MRS R0, PSP\n"
-                "LDMIA R0!, {R4, R11}\n"
-                "MSR PSP, R0\n"
-                "MOV LR, 0xFFFFFFFD\n"
-                "BX LR\n"
-            );
+        	Case2();
         break;
 
         case 255:

@@ -53,7 +53,7 @@ void assign_TID(TCB* task){
 }
 
 int is_empty(){
-	for (int i = 0; i < 16; i++){
+	for (int i = 1; i < 16; i++){
 		if (task_queue[i].state != 0) return 0;
 	}
 	return 1;
@@ -77,14 +77,12 @@ void scheduler() {
             if (current_tid_index == 0) { //If we reach null task, skip it
                 current_tid_index = 1;
             }
-            if (current_task == NULL){
-            	current_task = &task_queue[0]; // Same as old scheduler
-            	__set_PSP(*current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
-            	return;
-            }
-            else if (task_queue[current_task->tid].state == 1) { //If the task is available/ready
+
+            if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
+            	task_queue[current_tid_index].state = 2;
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
-                __set_PSP(*current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
+                __set_PSP(current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
+                __asm("SVC #2");
                 return;
             }
         } while (current_tid_index != start_index); // Loop until we come back to the start index so we don't do infinite loop
@@ -96,7 +94,7 @@ int osKernelStart(){
   if (first_run && initialized){
     first_run = 0;
     scheduler();
-    __asm("SVC #0");
+    //__asm("SVC #0");
     printf("kernel start finished ok!\r\n");
     return RTX_OK;
   }
@@ -108,7 +106,6 @@ int osKernelStart(){
 }
 
 void osKernelInit(){
-  printf("inside kernelinit!\r\n");
   //initialize variables
   MSP_INIT_VAL = *(U32**)0x0;
   current_task = NULL;
