@@ -43,12 +43,4 @@ typedef struct task_control_block{
   task_t next;	// stores the tid of the next task
 } TCB;
 
-typedef struct state_and_address_info{
-	int occupied;
-	U32* stack_address;
-	U16 stack_size;
-} STATE_ADDRESS_INFO;
-
-
-
 #endif /* INC_COMMON_H_ */

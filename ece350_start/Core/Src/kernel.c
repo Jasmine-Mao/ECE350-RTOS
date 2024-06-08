@@ -12,18 +12,7 @@ int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
 
-int states[MAX_TASKS] = {0};      // size of the array is defined by max tasks in main.c; 0 if not taken, 1 if taken
-// state 1 -> available
-// state 2 -> ready
-// state 3 -> running
-
-// the below array replaces the states array
-// tracks the state and starting address of a task
-// will hold info for 15 different tasks, neglecting to do anything for the NULL task
-STATE_ADDRESS_INFO address_tracking[MAX_TASKS-1];
-
 TCB task_queue[MAX_TASKS] = {NULL};
-
 
 int get_stack_address(TCB* task){
 	for(int i = 1; i < MAX_TASKS; i++){
@@ -38,12 +27,14 @@ int get_stack_address(TCB* task){
 				task->stack_high = task_queue[i - 1].stack_high - task->stack_size;
 			}
 			// set t\state here
+			task->state = 1;
 			task_queue[i] = *task;
 			return RTX_OK;
 		}
 		else if(task_queue[i].state == 0 && task_queue[i].stack_size >= task->stack_size){
 			// if the address and size have already been set
 			task->stack_size = task_queue[i].stack_size;
+			task->state = 1;
 			task_queue[i] = *task;
 			return RTX_OK;
 		}
@@ -54,9 +45,8 @@ int get_stack_address(TCB* task){
 void assign_TID(TCB* task){
   // iterate through the atomic array
   for(int i = 1; i < 16; i++){
-    if(states[i] == 0){
+    if(task_queue[i].state == 0){
       task->tid = i;
-      states[i] = 1;
       return;
     }
   }
@@ -64,7 +54,7 @@ void assign_TID(TCB* task){
 
 int is_empty(){
 	for (int i = 0; i < 16; i++){
-		if (states[i]) return 0;
+		if (task_queue[i].state != 0) return 0;
 	}
 	return 1;
 }
@@ -87,7 +77,7 @@ void scheduler() {
             if (current_tid_index == 0) { //If we reach null task, skip it
                 current_tid_index = 1;
             }
-            if (states[current_task->tid] == 1) { //If the task is available/ready
+            if (task_queue[current_task->tid].state == 1) { //If the task is available/ready
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
                 __set_PSP(*current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
                 return;
@@ -152,7 +142,7 @@ task_t osGetTID (void){
 int osTaskExit(void){
   if (!first_run && initialized){
     current_task->state = DORMANT;
-    states[current_task->tid] = 0;
+    task_queue[current_task->tid].state = 0;
     scheduler();
     return RTX_OK;
   }
@@ -163,17 +153,11 @@ int osTaskExit(void){
 int osCreateTask(TCB* task){
 if (task != NULL && task_counter < MAX_TASKS && task->stack_size >= STACK_SIZE && task->stack_size <= MAX_STACK_SIZE){	// the stacksize of the given task has double the size of the specified stack size from common.h
  assign_TID(task);
- task->state = 1;
  get_stack_address(task);
  *(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
  *(--task->stack_high) = (uint32_t)(task->ptask); //the function name
  for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
-// for (int i = 1; i < MAX_TASKS; i++){
-// 	  if(!task_queue[i].state){ //if the TID matches, copy the task info
-// 			task_queue[i] = *task;
-// 			break;
-// 		  }
-//   }
+
  task_counter++;
  return RTX_OK;
 }
