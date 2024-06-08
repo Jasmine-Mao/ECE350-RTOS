@@ -83,8 +83,8 @@ void scheduler() {
             if (current_tid_index == 0) { //If we reach null task, skip it
                 current_tid_index = 1;
             }
-
             if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
+            	if (current_task != NULL) task_queue[current_task->tid].state = 1;
             	task_queue[current_tid_index].state = 2;
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
                 __set_PSP(current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
@@ -147,7 +147,6 @@ task_t osGetTID (void){
 
 int osTaskExit(void){
   if (!first_run && initialized){
-    current_task->state = DORMANT;
     task_queue[current_task->tid].state = 0;
     scheduler();
     __asm("SVC #2");
