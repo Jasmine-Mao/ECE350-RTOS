@@ -81,7 +81,7 @@ void scheduler() {
             if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
             	task_queue[current_tid_index].state = 2;
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
-                __set_PSP(current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
+                __set_PSP(current_task->ptask); // please check referencing/defrencing here  and aboveI have no clue
                 __asm("SVC #2");
                 // should be able to return from here after the svc call
                 return;

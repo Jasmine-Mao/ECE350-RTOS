@@ -12,4 +12,5 @@
 	MRS R0, PSP
 	LDMIA R0!, {R4, R11}
 	MSR PSP, R0
+	MOV LR, R0
 	BX LR
