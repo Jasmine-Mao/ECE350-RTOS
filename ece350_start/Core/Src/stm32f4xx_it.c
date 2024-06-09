@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-    ******************************************************************************
-    * @file        stm32f4xx_it.c
-    * @brief     Interrupt Service Routines.
-    ******************************************************************************
-    * @attention
-    *
-    * Copyright (c) 2023 STMicroelectronics.
-    * All rights reserved.
-    *
-    * This software is licensed under terms that can be found in the LICENSE file
-    * in the root directory of this software component.
-    * If no LICENSE file comes with this software, it is provided AS-IS.
-    *
-    ******************************************************************************
-    */
+ ******************************************************************************
+ * @file        stm32f4xx_it.c
+ * @brief     Interrupt Service Routines.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -67,148 +67,132 @@ extern void Case2(void);
 /*                     Cortex-M4 Processor Interruption and Exception Handlers                    */
 /******************************************************************************/
 /**
-    * @brief This function handles Non maskable interrupt.
-    */
-void NMI_Handler(void)
-{
-    /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+ * @brief This function handles Non maskable interrupt.
+ */
+void NMI_Handler(void) {
+	/* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
-    /* USER CODE END NonMaskableInt_IRQn 0 */
-    /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-    while (1)
-    {
-    }
-    /* USER CODE END NonMaskableInt_IRQn 1 */
+	/* USER CODE END NonMaskableInt_IRQn 0 */
+	/* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+	while (1) {
+	}
+	/* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
 /**
-    * @brief This function handles Hard fault interrupt.
-    */
-void HardFault_Handler(void)
-{
-    /* USER CODE BEGIN HardFault_IRQn 0 */
+ * @brief This function handles Hard fault interrupt.
+ */
+void HardFault_Handler(void) {
+	/* USER CODE BEGIN HardFault_IRQn 0 */
 
-    /* USER CODE END HardFault_IRQn 0 */
-    while (1)
-    {
-        /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-        /* USER CODE END W1_HardFault_IRQn 0 */
-    }
+	/* USER CODE END HardFault_IRQn 0 */
+	while (1) {
+		/* USER CODE BEGIN W1_HardFault_IRQn 0 */
+		/* USER CODE END W1_HardFault_IRQn 0 */
+	}
 }
 
 /**
-    * @brief This function handles Memory management fault.
-    */
-void MemManage_Handler(void)
-{
-    /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+ * @brief This function handles Memory management fault.
+ */
+void MemManage_Handler(void) {
+	/* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
-    /* USER CODE END MemoryManagement_IRQn 0 */
-    while (1)
-    {
-        /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
-        /* USER CODE END W1_MemoryManagement_IRQn 0 */
-    }
+	/* USER CODE END MemoryManagement_IRQn 0 */
+	while (1) {
+		/* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
+		/* USER CODE END W1_MemoryManagement_IRQn 0 */
+	}
 }
 
 /**
-    * @brief This function handles Pre-fetch fault, memory access fault.
-    */
-void BusFault_Handler(void)
-{
-    /* USER CODE BEGIN BusFault_IRQn 0 */
+ * @brief This function handles Pre-fetch fault, memory access fault.
+ */
+void BusFault_Handler(void) {
+	/* USER CODE BEGIN BusFault_IRQn 0 */
 
-    /* USER CODE END BusFault_IRQn 0 */
-    while (1)
-    {
-        /* USER CODE BEGIN W1_BusFault_IRQn 0 */
-        /* USER CODE END W1_BusFault_IRQn 0 */
-    }
+	/* USER CODE END BusFault_IRQn 0 */
+	while (1) {
+		/* USER CODE BEGIN W1_BusFault_IRQn 0 */
+		/* USER CODE END W1_BusFault_IRQn 0 */
+	}
 }
 
 /**
-    * @brief This function handles Undefined instruction or illegal state.
-    */
-void UsageFault_Handler(void)
-{
-    /* USER CODE BEGIN UsageFault_IRQn 0 */
+ * @brief This function handles Undefined instruction or illegal state.
+ */
+void UsageFault_Handler(void) {
+	/* USER CODE BEGIN UsageFault_IRQn 0 */
 
-    /* USER CODE END UsageFault_IRQn 0 */
-    while (1)
-    {
-        /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
-        /* USER CODE END W1_UsageFault_IRQn 0 */
-    }
+	/* USER CODE END UsageFault_IRQn 0 */
+	while (1) {
+		/* USER CODE BEGIN W1_UsageFault_IRQn 0 */
+		/* USER CODE END W1_UsageFault_IRQn 0 */
+	}
 }
 
 /**
-    * @brief This function handles System service call via SWI instruction.
-    */
-__attribute__((naked)) void SVC_Handler(void)
-{
+ * @brief This function handles System service call via SWI instruction.
+ */
+__attribute__((naked)) void SVC_Handler(void) {
 
-    __asm(
-        ".global SVC_Handler_Main\n"
-        "TST lr, #4\n"
-        "ITE EQ\n"
-        "MRSEQ r0, MSP\n"
-        "MRSNE r0, PSP\n"
-        "B SVC_Handler_Main\n"
-    ) ;
+	__asm(
+			".global SVC_Handler_Main\n"
+			"TST lr, #4\n"
+			"ITE EQ\n"
+			"MRSEQ r0, MSP\n"
+			"MRSNE r0, PSP\n"
+			"B SVC_Handler_Main\n"
+	);
 }
-unsigned int svc_number;
 
-void SVC_Handler_Main( unsigned int *svc_args )
-{
+void SVC_Handler_Main(unsigned int *svc_args) {
+	unsigned int svc_number;
+	/*
+	 * Stack contains:
+	 * r0, r1, r2, r3, r12, r14, the return address and xPSR
+	 * First argument (r0) is svc_args[0]
+	 */
+	svc_number = ((char*) svc_args[6])[-2];
+	switch (svc_number) {
+	case 1:
+		// case to enter pend_sv
+		__asm volatile(
+				"MRS R0, PSP\n"       // store into R0 the program stack pointer
+				"STMDB R0!, {R4-R11}\n"// store r4 to r11 into the memory spaces above r0
+				"MSR PSP, R0\n"
+		);
+		// move the value in R0 into the PSP
+		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
+		__asm("isb");
+		break;
+	case 2:
+		// case when the current running task doesn't need to be stored
+		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
+		__asm("isb");
+		break;
 
-    /*
-    * Stack contains:
-    * r0, r1, r2, r3, r12, r14, the return address and xPSR
-    * First argument (r0) is svc_args[0]
-    */
-    svc_number = ( ( char * )svc_args[ 6 ] )[ -2 ] ;
-    switch( svc_number )
-    {
-        case 0:    /* EnablePrivilegedMode */
-            //__set_CONTROL( __get_CONTROL( ) & ~CONTROL_nPRIV_Msk ) ;    // this shouldnt give us problems according to the ta, follow up if issues happen
-            printf("in case 0 of the svc handler\r\n");
-
-        	break;
-        case 1:
-            // case to enter pend_sv
-            SCB->ICSR |= 1<<28; //control register bit for a PendSV interrupt
-            __asm("isb");
-            break;
-        case 2:
-        	// case when the current running task doesn't need to be stored
-        	Case2();
-        break;
-
-        case 255:
-        	printf("HELP\n");
-        	break;
-        default:        /* unknown SVC */
-        // add different svc cases for the different things we need to handle
-            break;
-    }
+	default: /* unknown SVC */
+		// add different svc cases for the different things we need to handle
+		break;
+	}
 }
 
 /**
-    * @brief This function handles Debug monitor.
-    */
-void DebugMon_Handler(void)
-{
-    /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+ * @brief This function handles Debug monitor.
+ */
+void DebugMon_Handler(void) {
+	/* USER CODE BEGIN DebugMonitor_IRQn 0 */
 
-    /* USER CODE END DebugMonitor_IRQn 0 */
-    /* USER CODE BEGIN DebugMonitor_IRQn 1 */
+	/* USER CODE END DebugMonitor_IRQn 0 */
+	/* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
-    /* USER CODE END DebugMonitor_IRQn 1 */
+	/* USER CODE END DebugMonitor_IRQn 1 */
 }
 
 /**
-    * @brief This function handles Pendable request for system service.
-    */
+ * @brief This function handles Pendable request for system service.
+ */
 //void PendSV_Handler(void)
 //{
 //    /* USER CODE BEGIN PendSV_IRQn 0 */
@@ -218,19 +202,17 @@ void DebugMon_Handler(void)
 //
 //    /* USER CODE END PendSV_IRQn 1 */
 //}
-
 /**
-    * @brief This function handles System tick timer.
-    */
-void SysTick_Handler(void)
-{
-    /* USER CODE BEGIN SysTick_IRQn 0 */
+ * @brief This function handles System tick timer.
+ */
+void SysTick_Handler(void) {
+	/* USER CODE BEGIN SysTick_IRQn 0 */
 
-    /* USER CODE END SysTick_IRQn 0 */
-    HAL_IncTick();
-    /* USER CODE BEGIN SysTick_IRQn 1 */
+	/* USER CODE END SysTick_IRQn 0 */
+	HAL_IncTick();
+	/* USER CODE BEGIN SysTick_IRQn 1 */
 
-    /* USER CODE END SysTick_IRQn 1 */
+	/* USER CODE END SysTick_IRQn 1 */
 }
 
 /******************************************************************************/

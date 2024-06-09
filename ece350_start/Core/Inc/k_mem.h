@@ -10,6 +10,4 @@
 #ifndef INC_K_MEM_H_
 #define INC_K_MEM_H_
 
-
-
 #endif /* INC_K_MEM_H_ */

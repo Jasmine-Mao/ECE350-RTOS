@@ -19,7 +19,6 @@ typedef unsigned short U16;
 typedef char U8;
 typedef unsigned int task_t;
 
-
 #define MAX_STACK_SIZE 0x4000
 #define MAIN_STACK_SIZE 0x400
 #define THREAD_STACK_SIZE 0x400
@@ -33,14 +32,14 @@ typedef unsigned int task_t;
 #define RTX_ERR -1 //error code for RTX functions
 #define RTX_OK 0 //success code for RTX functions
 
-typedef struct task_control_block{
-  void (*ptask)(void* args); //entry address
-  U32 *stack_high; //starting address of stack (high address)
-  task_t tid; //task ID
-  U8 state; //task's state
-  U16 stack_size; //stack size. Must be a multiple of 8
-  //your own fields at the end
-  U32 *starting_address;
+typedef struct task_control_block {
+	void (*ptask)(void *args); //entry address
+	U32 *stack_high; //starting address of stack (high address)
+	task_t tid; //task ID
+	U8 state; //task's state
+	U16 stack_size; //stack size. Must be a multiple of 8
+	//your own fields at the end
+	U32 *starting_address;
 } TCB;
 
 #endif /* INC_COMMON_H_ */

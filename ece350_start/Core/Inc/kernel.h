@@ -5,12 +5,11 @@
 
 void osKernelInit(void);
 int osKernelStart(void);
-int osTaskInfo(task_t TID, TCB* task_copy);
-task_t osGetTID (void);
+int osTaskInfo(task_t TID, TCB *task_copy);
+task_t osGetTID(void);
 int osTaskExit(void);
 
-
-int osCreateTask(TCB* task);
+int osCreateTask(TCB *task);
 void osYield(void);
 
 int is_empty();
