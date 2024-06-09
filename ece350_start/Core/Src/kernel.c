@@ -18,12 +18,10 @@ int get_stack_address(TCB* task){
 	for(int i = 1; i < MAX_TASKS; i++){
 		if(task_queue[i].starting_address == NULL && task_queue[i].state == 0){
 			if(task_counter == 0){
-				task->starting_address = (int)MSP_INIT_VAL;
-				task->ending_address = (int)MSP_INIT_VAL - task->stack_size;
+				task->starting_address = (int)MSP_INIT_VAL - MAIN_STACK_SIZE - task->stack_size;
 			}
 			else{
-				task->starting_address = --task_queue[i - 1].ending_address;
-				task->ending_address = task->starting_address - task->stack_size;
+				task->starting_address = task_queue[i - 1].starting_address - task->stack_size;
 			}
 			task->stack_high = task->starting_address;
 			// starting address of stack 1
@@ -49,6 +47,8 @@ int get_stack_address(TCB* task){
 			// if the address and size have already been set
 			task->stack_size = task_queue[i].stack_size;
 			task->state = 1;
+			task->starting_address = task_queue[i].starting_address;
+			task->stack_high = task_queue[i].starting_address;
 			*(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
 			*(--task->stack_high) = (uint32_t)(task->ptask); //the function name
 			for (int i = 0; i < 14; i++) *(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
@@ -87,7 +87,7 @@ TCB * find_TCB(task_t tid_input){
 
 void scheduler() {
     if (!is_empty()) {
-    	if(current_task != NULL){
+    	if(current_task != NULL && current_task->state){
     		task_queue[current_task->tid].state = 1;
     		task_queue[current_task->tid].stack_high = __get_PSP();
     	}
@@ -113,8 +113,6 @@ void scheduler() {
 int osKernelStart(){
   if (first_run && initialized){
     first_run = 0;
-    scheduler();
-    __set_PSP(current_task->stack_high);
     __asm("SVC #2");
     printf("kernel start finished ok!\r\n");
     return RTX_OK;
@@ -163,7 +161,7 @@ task_t osGetTID (void){
 int osTaskExit(void){
   if (!first_run && initialized){
     task_queue[current_task->tid].state = 0;
-    scheduler();
+    task_counter--;
     __asm("SVC #2");
     return RTX_OK;
   }

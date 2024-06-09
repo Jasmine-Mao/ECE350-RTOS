@@ -9,6 +9,7 @@
 
  Case2:
 
+	BL scheduler
 	MRS R0, PSP
 	LDMIA R0!, {R4-R11}
 	MSR PSP, R0

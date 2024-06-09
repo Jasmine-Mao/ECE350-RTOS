@@ -41,7 +41,6 @@ typedef struct task_control_block{
   U16 stack_size; //stack size. Must be a multiple of 8
   //your own fields at the end
   U32 *starting_address;
-  U32 *ending_address;
 } TCB;
 
 #endif /* INC_COMMON_H_ */
