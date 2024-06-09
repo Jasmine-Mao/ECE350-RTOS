@@ -157,17 +157,18 @@ void SVC_Handler_Main(unsigned int *svc_args) {
 	switch (svc_number) {
 	case 1:
 		// case to enter pend_sv
-		__asm volatile(
-				"MRS R0, PSP\n"       // store into R0 the program stack pointer
-				"STMDB R0!, {R4-R11}\n"// store r4 to r11 into the memory spaces above r0
+        //moved the store registers code from PENdSV_Handler to here
+		__asm volatile( 
+				"MRS R0, PSP\n"       
+				"STMDB R0!, {R4-R11}\n"
 				"MSR PSP, R0\n"
 		);
 		// move the value in R0 into the PSP
 		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
-		__asm("isb");
+		__asm("isb"); //instruction synchronization barrier same as in case 2
 		break;
 	case 2:
-		// case when the current running task doesn't need to be stored
+		// case when the current running task doesn't need to be stored - same as before
 		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
 		__asm("isb");
 		break;
@@ -176,7 +177,7 @@ void SVC_Handler_Main(unsigned int *svc_args) {
 		// add different svc cases for the different things we need to handle
 		break;
 	}
-}
+}x`
 
 /**
  * @brief This function handles Debug monitor.
