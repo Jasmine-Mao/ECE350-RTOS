@@ -16,16 +16,27 @@ TCB task_queue[MAX_TASKS] = {NULL};
 
 int get_stack_address(TCB* task){
 	for(int i = 1; i < MAX_TASKS; i++){
-		if(task_queue[i].stack_high == NULL && task_queue[i].state == 0){
-			// if the address has not yet been set
+		if(task_queue[i].starting_address == NULL && task_queue[i].state == 0){
 			if(task_counter == 0){
-				// the very first thread
-				task->stack_high = (int)MSP_INIT_VAL - task->stack_size;
+				task->starting_address = (int)MSP_INIT_VAL;
+				task->ending_address = (int)MSP_INIT_VAL - task->stack_size;
 			}
 			else{
-				// look at the previous thread and make calculations that way
-				task->stack_high = task_queue[i - 1].stack_high - task->stack_size;
+				task->starting_address = --task_queue[i - 1].ending_address;
+				task->ending_address = task->starting_address - task->stack_size;
 			}
+			task->stack_high = task->starting_address;
+			// starting address of stack 1
+
+
+			// current top of stack 1 - stack high
+
+
+
+
+			// ending address of stack 1
+
+
 			// set t\state here
 			task->state = 1;
 			*(--task->stack_high) = 1<<24; //This is xPSR, setting the chip to Thumb mode
@@ -76,6 +87,10 @@ TCB * find_TCB(task_t tid_input){
 
 void scheduler() {
     if (!is_empty()) {
+    	if(current_task != NULL){
+    		task_queue[current_task->tid].state = 1;
+    		task_queue[current_task->tid].stack_high = __get_PSP();
+    	}
         int start_index = current_tid_index; // Save the starting index
         do {
             current_tid_index = (current_tid_index + 1) % MAX_TASKS; // Increment the index
@@ -84,7 +99,6 @@ void scheduler() {
                 current_tid_index = 1;
             }
             if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
-            	if (current_task != NULL) task_queue[current_task->tid].state = 1;
             	task_queue[current_tid_index].state = 2;
                 current_task = &task_queue[current_tid_index]; // Same as old scheduler
                 __set_PSP(current_task->stack_high); // please check referencing/defrencing here  and aboveI have no clue
@@ -100,6 +114,7 @@ int osKernelStart(){
   if (first_run && initialized){
     first_run = 0;
     scheduler();
+    __set_PSP(current_task->stack_high);
     __asm("SVC #2");
     printf("kernel start finished ok!\r\n");
     return RTX_OK;
@@ -168,7 +183,7 @@ else return RTX_ERR;
 
 void osYield(void){
   if (!first_run && initialized){
-	  task_queue[current_task->tid].state = 1;
+//	  task_queue[current_task->tid].state = 1;
 	  __asm("SVC #1");
   }
   else printf("panic: yield failed\r\n");
