@@ -140,7 +140,7 @@ int osTaskExit(void) {
 	if (!first_run && initialized) { //if this is not the first run and the kernel is initialized
 		task_queue[current_task->tid].state = 0; //set the current task to dormant
 		task_counter--; //decrement the task counter
-		__asm("SVC #2"); //call case 2 which is just scheduler and load new task
+		__asm("SVC #1"); //call case 2 which is just scheduler and load new task
 		return RTX_OK;
 	} else
 		return RTX_ERR;
@@ -149,9 +149,10 @@ int osTaskExit(void) {
 int osCreateTask(TCB *task) {
 	if (task != NULL && task_counter < MAX_TASKS
 			&& task->stack_size >= STACK_SIZE
-			&& task->stack_size <= MAX_STACK_SIZE) {// the stacksize of the given task has double the size of the specified stack size from common.h
+			&& task->stack_size <= MAX_STACK_SIZE
+			&& task->ptask != NULL) {// the stacksize of the given task has double the size of the specified stack size from common.h
 		assign_TID(task); //assign a TID to the task
-		get_stack_address(task); //get the stack address for the task
+		if (get_stack_address(task) == RTX_ERR) return RTX_ERR; //get the stack address for the task
 		task_counter++; //increment the task counter
 		return RTX_OK;
 	} else
