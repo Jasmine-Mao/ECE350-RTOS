@@ -19,8 +19,7 @@ int get_stack_address(TCB *task) {
 		if (task_queue[i].starting_address == NULL //if the task is not initialized
 				&& task_queue[i].state == 0) { //if the task is dormant
 			if (task_counter == 0) { //if this is the first task
-				task->starting_address = (int) MSP_INIT_VAL - MAIN_STACK_SIZE //set the starting address to the main stack
-						- task->stack_size; //subtract the stack size
+				task->starting_address = (int) MSP_INIT_VAL - MAIN_STACK_SIZE; //set the starting address to the main stack, subtract the stack size
 			} else {
 				task->starting_address = task_queue[i - 1].starting_address //set the starting address to the previous task's starting address
 						- task->stack_size; //subtract the stack size
