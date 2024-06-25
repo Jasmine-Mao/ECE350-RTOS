@@ -8,9 +8,9 @@
  *      C functions corresponding to this
  *      header, then any C functions you write must go into a corresponding c file that you create in the Core->Src folder
  */
-#include <stdatomic.h>
-#include "kernel.h"
-
+#include <stdint.h>
+#include "Queue.h"
+#include "main.h"
 #ifndef INC_COMMON_H_
 #define INC_COMMON_H_
 
@@ -32,6 +32,11 @@ typedef unsigned int task_t;
 #define RTX_ERR -1 //error code for RTX functions
 #define RTX_OK 0 //success code for RTX functions
 
+#define MIN_BLOCK_ORDER 5	// min block size is 32 bytes
+#define MIN_BLOCK_SIZE (1 << MIN_BLOCK_ORDER)
+#define MAX_ORDER 11
+
+
 typedef struct task_control_block {
 	void (*ptask)(void *args); //entry address
 	U32 *stack_high; //starting address of stack (high address)
@@ -41,5 +46,11 @@ typedef struct task_control_block {
 	//your own fields at the end
 	U32 *starting_address;
 } TCB;
+
+typedef struct header {
+	U32 status;
+	U32 size;
+	struct header_block *next;
+} header_block;
 
 #endif /* INC_COMMON_H_ */

@@ -18,8 +18,8 @@ int k_mem_init(){
     else{
         k_mem_initialized = 1;
         //initialize the heap
-        U32 *heap_start = &_img_end; //set the start of the heap to the end of the image
-        U32 *heap_end = &_estack - &_Min_Stack_Size; //set the end of the heap to the end of the stack
+        heap_start = &_img_end; //set the start of the heap to the end of the image
+        heap_end = &_estack - &_Min_Stack_Size; //set the end of the heap to _estack - _Min_Stack_Size
 
         return RTX_OK;
     }
@@ -36,7 +36,9 @@ void *k_mem_alloc(size_t size){
 }
 
 int k_mem_dealloc(void *ptr){
-
+    if(k_mem_initialized == 0){
+        return RTX_ERR;
+    }
 }
 
 int k_mem_count_extfrag(size_t size){
