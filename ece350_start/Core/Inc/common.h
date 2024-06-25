@@ -9,7 +9,6 @@
  *      header, then any C functions you write must go into a corresponding c file that you create in the Core->Src folder
  */
 #include <stdint.h>
-#include "Queue.h"
 #include "main.h"
 #ifndef INC_COMMON_H_
 #define INC_COMMON_H_
@@ -48,9 +47,10 @@ typedef struct task_control_block {
 } TCB;
 
 typedef struct header {
-	U32 status;
-	U32 size;
-	struct header_block *next;
+	U32 status;					// free/used, free = 0, used = 1
+	U32 size;					// size of the total block of memory
+	int ownership;				// who owns this block of memory ie. which thread
+	struct header_block *next;	// next free/occupied block, depending on which list it is for
 } header_block;
 
 #endif /* INC_COMMON_H_ */
