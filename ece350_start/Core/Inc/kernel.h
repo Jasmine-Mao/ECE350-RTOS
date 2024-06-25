@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+int initialized = 0;
+
 void osKernelInit(void);
 int osKernelStart(void);
 int osTaskInfo(task_t TID, TCB *task_copy);
