@@ -10,4 +10,9 @@
 #ifndef INC_K_MEM_H_
 #define INC_K_MEM_H_
 
+int k_mem_init();
+void *k_mem_alloc(size_t size);
+int k_mem_dealloc(void *ptr);
+int k_mem_count_extfrag(size_t size);
+
 #endif /* INC_K_MEM_H_ */
