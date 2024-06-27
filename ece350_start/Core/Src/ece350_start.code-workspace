@@ -7,7 +7,12 @@
 	],
 	"settings": {
 		"files.associations": {
-			"queue.h": "c"
+			"queue.h": "c",
+			"array": "c",
+			"string_view": "c",
+			"initializer_list": "c",
+			"ranges": "c",
+			"utility": "c"
 		}
 	}
 }
