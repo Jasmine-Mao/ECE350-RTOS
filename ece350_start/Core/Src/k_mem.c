@@ -8,8 +8,8 @@ extern U32 _img_end; //the start of the heap will be from here, could add 0x200 
 extern U32 _estack;
 extern U32 _Min_Stack_Size;
 int k_mem_initialized = 0;
-U32 *heap_start = NULL;
-U32 *heap_end = NULL;
+U32 heap_start = 0;
+U32 heap_end = 0;
 
 header_block *header_array[MAX_ORDER] = {NULL};  // array of 11 pointers for the 11 levels; initially set to NULL
 
@@ -21,14 +21,14 @@ int k_mem_init(){
     }
     else{
         k_mem_initialized = 1;
-        heap_start = &_img_end; //set the start of the heap to the end of the image
-        heap_end = &_estack - &_Min_Stack_Size; //set the end of the heap to _estack - _Min_Stack_Size
+        heap_start = (U32)&_img_end; //set the start of the heap to the end of the image
+        heap_end = (U32)&_estack - (U32)&_Min_Stack_Size; //set the end of the heap to _estack - _Min_Stack_Size
 
-        header_block *root_block;       // create the very first free block encompassing all the free memory
+        header_block *root_block = (header_block*)heap_start;       // create the very first free block encompassing all the free memory
         root_block->next = NULL;
         root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER));
         root_block->status = 0;
-        root_block->address = heap_start;
+        root_block->address = &heap_start;
 
         header_array[MAX_ORDER - 1] = root_block;       // place the root memory block at the last index of the pointer array
         //initialize the heap
@@ -73,8 +73,8 @@ void *k_mem_alloc(size_t size){
         // now we need to split the free block until we reach our desired block size, block_level
         while(tracker != block_level){  // stay here until we have reached the block size we want
             // create 2 nodes in the level below
-            header_block *buddy1 = NULL;
-            header_block *buddy2 = NULL;
+            header_block *buddy1;
+            header_block *buddy2;
 
             buddy1->size = (1 << (tracker + MIN_BLOCK_ORDER));      //****
             buddy2->size = buddy1->size;
@@ -85,7 +85,7 @@ void *k_mem_alloc(size_t size){
             buddy1->status = 0;
             buddy2->status = 0;
 
-            buddy1->next = buddy2;
+            buddy1->next = &buddy2;
             buddy2->next = NULL;
 
             // remove the now-used node from the free list
@@ -95,7 +95,7 @@ void *k_mem_alloc(size_t size){
             // decrement tracker
             tracker--;
             // set the next free list
-            header_array[tracker]->next = buddy1;
+            header_array[tracker] = buddy1;
         }
 
         // now we have a free block we can manipulate
