@@ -26,9 +26,9 @@ int k_mem_init(){
 
         header_block *root_block = (header_block*)heap_start;       // create the very first free block encompassing all the free memory
         root_block->next = NULL;
-        root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER));
+        root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER - 1));
         root_block->status = 0;
-        root_block->address = &heap_start;
+        //root_block->address = &heap_start+sizeof(header_block);
 
         header_array[MAX_ORDER - 1] = root_block;       // place the root memory block at the last index of the pointer array
         //initialize the heap
@@ -73,24 +73,23 @@ void *k_mem_alloc(size_t size){
         // now we need to split the free block until we reach our desired block size, block_level
         while(tracker != block_level){  // stay here until we have reached the block size we want
             // create 2 nodes in the level below
-            header_block *buddy1;
-            header_block *buddy2;
+            header_block *buddy1 = header_array[tracker];
+            header_block *buddy2 = (header_block*)((int)buddy1 ^ (1 << (tracker + MIN_BLOCK_ORDER)));
 
-            buddy1->size = (1 << (tracker + MIN_BLOCK_ORDER));      //****
+            // remove the now-used node from the free list
+            header_array[tracker] = (header_block*)header_array[tracker]->next;    // the pointer of the array now points to the next item in the free list.
+
+            buddy1->size = (1 << (tracker + MIN_BLOCK_ORDER - 1));      //****
             buddy2->size = buddy1->size;
 
-            buddy1->address = header_array[tracker]->address;
-            buddy2->address = buddy1->address + buddy1->size;       // this is pointer arithmetic? need this checked
+            //buddy1->address = header_array[tracker]->address;
+            //buddy2->address = buddy1->address + buddy1->size;       // this is pointer arithmetic? need this checked
 
             buddy1->status = 0;
             buddy2->status = 0;
 
-            buddy1->next = &buddy2;
+            buddy1->next = buddy2;
             buddy2->next = NULL;
-
-            // remove the now-used node from the free list
-            header_array[tracker]->status = 1;      // set the status to 1 now that it is partially occupied
-            header_array[tracker] = header_array[tracker]->next;    // the pointer of the array now points to the next item in the free list.
 
             // decrement tracker
             tracker--;
@@ -101,8 +100,8 @@ void *k_mem_alloc(size_t size){
         // now we have a free block we can manipulate
 
         header_array[block_level]->status = 1;
-        void *pointer = header_array[block_level]->address;
-        header_array[block_level] = header_array[block_level]->next;
+        void *pointer = (char*)header_array[block_level]+sizeof(header_block);
+        header_array[block_level] = (header_block*)header_array[block_level]->next;
 
         return pointer;
     }
