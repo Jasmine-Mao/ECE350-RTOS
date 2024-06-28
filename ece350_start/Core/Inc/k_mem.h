@@ -10,9 +10,9 @@
 #ifndef INC_K_MEM_H_
 #define INC_K_MEM_H_
 
-int k_mem_initialized = 0;
-U32 *heap_start;
-U32 *heap_end;
+extern int k_mem_initialized;
+extern U32 *heap_start;
+extern U32 *heap_end;
 
 int k_mem_init();
 void *k_mem_alloc(size_t size);

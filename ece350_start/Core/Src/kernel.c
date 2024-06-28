@@ -7,7 +7,7 @@ U32 *MSP_INIT_VAL;
 //= *(U32**)0x0;
 // ^gets set when kernel init runs
 TCB *current_task;
-// int initialized = 0;
+int initialized = 0;
 int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running

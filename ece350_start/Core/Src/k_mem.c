@@ -7,6 +7,9 @@
 extern U32 _img_end; //the start of the heap will be from here, could add 0x200 bytes offset
 extern U32 _estack;
 extern U32 _Min_Stack_Size;
+int k_mem_initialized = 0;
+U32 *heap_start = NULL;
+U32 *heap_end = NULL;
 
 header_block *header_array[MAX_ORDER] = {NULL};  // array of 11 pointers for the 11 levels; initially set to NULL
 
@@ -70,10 +73,10 @@ void *k_mem_alloc(size_t size){
         // now we need to split the free block until we reach our desired block size, block_level
         while(tracker != block_level){  // stay here until we have reached the block size we want
             // create 2 nodes in the level below
-            header_block *buddy1;
-            header_block *buddy2;
+            header_block *buddy1 = NULL;
+            header_block *buddy2 = NULL;
 
-            buddy1->size = (1 << (tracker + MIN_BLOCK_ORDER - 1));      //****
+            buddy1->size = (1 << (tracker + MIN_BLOCK_ORDER));      //****
             buddy2->size = buddy1->size;
 
             buddy1->address = header_array[tracker]->address;

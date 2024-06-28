@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-int initialized = 0;
+extern int initialized;
 
 void osKernelInit(void);
 int osKernelStart(void);
