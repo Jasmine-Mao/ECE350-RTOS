@@ -23,8 +23,7 @@ int k_mem_init(){
 
         header_block *root_block;       // create the very first free block encompassing all the free memory
         root_block->next = NULL;
-        // root_block->ownership = -1;     // negative since there is no current ownership of the block
-        root_block->size = (1 << MAX_ORDER);        // *** NEED TO CHECK THIS ***
+        root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER));
         root_block->status = 0;
         root_block->address = heap_start;
 
@@ -46,7 +45,7 @@ void *k_mem_alloc(size_t size){
         size += sizeof(header_block);   // add the header to the size
         int block_level = -1;
         for(int i = MIN_BLOCK_ORDER; i <= MIN_BLOCK_ORDER + MAX_ORDER; i++){       // find what memory block size is needed to accomodate
-            if((1 << i) < size){
+            if(size < (1 << i)){
                 block_level = i - MIN_BLOCK_ORDER;      // block order is now the index value needed to find blocks of the size we need
                 break;
             }
@@ -74,7 +73,7 @@ void *k_mem_alloc(size_t size){
             header_block *buddy1;
             header_block *buddy2;
 
-            buddy1->size = (1 << (tracker + MIN_BLOCK_ORDER));
+            buddy1->size = (1 << (tracker + MIN_BLOCK_ORDER - 1));      //****
             buddy2->size = buddy1->size;
 
             buddy1->address = header_array[tracker]->address;
@@ -97,8 +96,6 @@ void *k_mem_alloc(size_t size){
         }
 
         // now we have a free block we can manipulate
-
-        // also how tf do we assign ownership??
 
         header_array[block_level]->status = 1;
         void *pointer = header_array[block_level]->address;
