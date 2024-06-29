@@ -28,6 +28,7 @@ int k_mem_init(){
         root_block->next = NULL;
         root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER - 1));
         root_block->status = 0;
+        root_block->magic_number = MAGIC_NUMBER;
         //root_block->address = &heap_start+sizeof(header_block);
 
         header_array[MAX_ORDER - 1] = root_block;       // place the root memory block at the last index of the pointer array
@@ -88,6 +89,8 @@ void *k_mem_alloc(size_t size){
             buddy1->status = 0;
             buddy2->status = 0;
 
+            buddy2->magic_number = MAGIC_NUMBER;
+
             buddy1->next = buddy2;
             buddy2->next = NULL;
 
@@ -111,6 +114,66 @@ void *k_mem_alloc(size_t size){
 int k_mem_dealloc(void *ptr){
     if(k_mem_initialized == 0){
         return RTX_ERR;
+    }
+    else{
+        header_block *block_found = (header_block*)(ptr - sizeof(header_block));
+        // check the magic number of the header we found
+        if(block_found->magic_number == MAGIC_NUMBER){
+            // we know that this header we found is something we allocated
+            int block_level = 0;
+            while(block_found->size != (1 << (block_level + MIN_BLOCK_ORDER))){
+                block_level++;
+            }
+            // block level now found
+            block_found->status = 0;
+            block_found->next = header_array[block_level];      // next pointer not points to the first thing in the list
+            header_array[block_level] = block_found;            // set the beginning of the list to our found block
+
+            int continue_coalescing = 1;
+            while(continue_coalescing){
+                // find the buddy node
+                header_block *buddy = (header_block*)((int)block_found ^ (1 << (block_level + MIN_BLOCK_ORDER)));
+
+                // check if the buddy is in use or not
+                if(buddy->status == 0){
+                    // need to find the element in the linked list
+                    header_block *temp = header_array[block_level];
+                    while(temp != NULL){
+                        // iterate through the items in the list until we hit null
+                        // only need to start checking from the second element since we inserted the just-freed block at the front of the LL
+                        if((int)temp->next == (int)buddy){
+                            // if the address of the buddy block we found matches an element in the array
+                            temp->next = buddy->next;
+                            // the pointer of the node nows skips over the found buddy block, so the node is no longer in the free list
+                        }
+                        temp = temp->next;
+                    }
+                    // we should never reach here without finding the corresponding buddy node
+                    // now we remove the recently added note
+                    header_array[block_level] = header_array[block_level]->next;
+
+                    // increment the block level to check if we need to coalesce at the parent level
+                    block_level++;
+                    
+                    // add the new free block to the LL above
+                    block_found->next = header_array[block_level];
+                    header_array[block_level] = block_found;
+                    // insert the found block into the list above
+                    // status is already set to 0
+                }
+                else{
+                    // buddy is currently in use, stop coalescing
+                    continue_coalescing = 0;
+                }
+            }
+            // once we're here, coalescing has ceased and he have successfully inserted a free node into any lists that needed one
+            return RTX_OK;
+
+        }
+        else{
+            return RTX_ERR;
+            // return error since the magic number was not valid
+        }
     }
 }
 
