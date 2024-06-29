@@ -121,13 +121,12 @@ int k_mem_dealloc(void *ptr){
         if(block_found->magic_number == MAGIC_NUMBER){
             // we know that this header we found is something we allocated
             int block_level = 0;
-            while(block_found->size > (1 << (block_level + MIN_BLOCK_ORDER))){
+            while(block_found->size != (1 << (block_level + MIN_BLOCK_ORDER))){
                 block_level++;
             }
             // block level now found
             block_found->status = 0;
             block_found->next = header_array[block_level];      // next pointer not points to the first thing in the list
-            block_found->size = (1 << (block_level + MIN_BLOCK_ORDER));
             header_array[block_level] = block_found;            // set the beginning of the list to our found block
 
             int continue_coalescing = 1;
