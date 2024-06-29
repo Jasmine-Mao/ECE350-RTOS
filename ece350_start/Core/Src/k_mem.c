@@ -75,7 +75,7 @@ void *k_mem_alloc(size_t size){
         while(tracker != block_level){  // stay here until we have reached the block size we want
             // create 2 nodes in the level below
             header_block *buddy1 = header_array[tracker];
-            header_block *buddy2 = (header_block*)((int)buddy1 ^ (1 << (tracker + MIN_BLOCK_ORDER)));
+            header_block *buddy2 = (header_block*)((int)buddy1 ^ (1 << (tracker + MIN_BLOCK_ORDER - 1)));
 
             // remove the now-used node from the free list
             header_array[tracker] = (header_block*)header_array[tracker]->next;    // the pointer of the array now points to the next item in the free list.
@@ -121,12 +121,13 @@ int k_mem_dealloc(void *ptr){
         if(block_found->magic_number == MAGIC_NUMBER){
             // we know that this header we found is something we allocated
             int block_level = 0;
-            while(block_found->size != (1 << (block_level + MIN_BLOCK_ORDER))){
+            while(block_found->size > (1 << (block_level + MIN_BLOCK_ORDER))){
                 block_level++;
             }
             // block level now found
             block_found->status = 0;
             block_found->next = header_array[block_level];      // next pointer not points to the first thing in the list
+            block_found->size = (1 << (block_level + MIN_BLOCK_ORDER));
             header_array[block_level] = block_found;            // set the beginning of the list to our found block
 
             int continue_coalescing = 1;
