@@ -112,11 +112,11 @@ void *k_mem_alloc(size_t size){
 
 
 int k_mem_dealloc(void *ptr){
-    if(k_mem_initialized == 0){
+    if(k_mem_initialized == 0 || ptr == NULL){
         return RTX_ERR;
     }
     else{
-        header_block *block_found = (header_block*)(ptr - sizeof(header_block));
+        header_block *block_found = (header_block*)((char*)ptr - sizeof(header_block));
         // check the magic number of the header we found
         if(block_found->magic_number == MAGIC_NUMBER){
             // we know that this header we found is something we allocated
@@ -135,7 +135,7 @@ int k_mem_dealloc(void *ptr){
                 header_block *buddy = (header_block*)((int)block_found ^ (1 << (block_level + MIN_BLOCK_ORDER)));
 
                 // check if the buddy is in use or not
-                if(buddy->status == 0){
+                if(buddy->status == 0 && block_found->size == buddy->size){
                     // need to find the element in the linked list
                     header_block *temp = header_array[block_level];
                     while(temp != NULL){
