@@ -11,7 +11,7 @@ int k_mem_initialized = 0;
 U32 heap_start = 0;
 U32 heap_end = 0;
 
-header_block *header_array[MAX_ORDER] = {NULL};  // array of 11 pointers for the 11 levels; initially set to NULL
+header_block *header_array[MAX_ORDER+1] = {NULL};  // array of 11 pointers for the 11 levels; initially set to NULL
 
 int k_mem_init(){
     // if the kernel has already been initialized
@@ -64,10 +64,8 @@ void *k_mem_alloc(size_t size){
         // if no node is found, the pointer in the array will be NULL. thus, we need to check the pointer value
         int tracker = block_level;
         while(header_array[tracker] == NULL){
-            if(tracker == MIN_BLOCK_ORDER + MAX_ORDER){  // if we have reached the root and the pointer is NULL, there is simply no space for our current block
-                return NULL;
-            }
-            tracker++;      // increment tracker to look at the level above
+            tracker++; // increment tracker to look at the level above
+            if(tracker == MAX_ORDER + 1) return NULL; // if we have reached the root and the pointer is NULL, there is simply no space for our current block
         }
         // reach here once we find a list that has a free node we can split
 
@@ -75,7 +73,7 @@ void *k_mem_alloc(size_t size){
         while(tracker != block_level){  // stay here until we have reached the block size we want
             // create 2 nodes in the level below
             header_block *buddy1 = header_array[tracker];
-            header_block *buddy2 = (header_block*)((int)buddy1 ^ (1 << (tracker + MIN_BLOCK_ORDER - 1)));
+            header_block *buddy2 = (header_block*)((char*)header_array[tracker] + (1 << (tracker + MIN_BLOCK_ORDER - 1)));
 
             // remove the now-used node from the free list
             header_array[tracker] = (header_block*)header_array[tracker]->next;    // the pointer of the array now points to the next item in the free list.
@@ -132,7 +130,7 @@ int k_mem_dealloc(void *ptr){
             int continue_coalescing = 1;
             while(continue_coalescing){
                 // find the buddy node
-                header_block *buddy = (header_block*)((int)block_found ^ (1 << (block_level + MIN_BLOCK_ORDER)));
+                header_block *buddy = (header_block*)((char*)block_found + (1 << (block_level + MIN_BLOCK_ORDER)));
 
                 // check if the buddy is in use or not
                 if(buddy->status == 0 && block_found->size == buddy->size){
@@ -144,6 +142,7 @@ int k_mem_dealloc(void *ptr){
                         if((int)temp->next == (int)buddy){
                             // if the address of the buddy block we found matches an element in the array
                             temp->next = buddy->next;
+                            break;
                             // the pointer of the node nows skips over the found buddy block, so the node is no longer in the free list
                         }
                         temp = temp->next;
