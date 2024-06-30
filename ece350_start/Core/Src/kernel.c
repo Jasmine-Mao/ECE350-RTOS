@@ -21,14 +21,20 @@ int get_stack_address(TCB *task) {
 			if (task_counter == 0) { //if this is the first task
 				task->starting_address = (int) MSP_INIT_VAL - MAIN_STACK_SIZE; //set the starting address to the main stack, subtract the stack size
 			} else {
-				task->starting_address = task_queue[i - 1].starting_address //set the starting address to the previous task's starting address
+				task->starting_address = (int)task_queue[i - 1].starting_address //set the starting address to the previous task's starting address
 						- task->stack_size; //subtract the stack size
+				// if the calculated address is greater than 0x4000 away from task 1's address, we immediately return an error
+				if((int)MSP_INIT_VAL - (int)task->starting_address > MAX_STACK_SIZE){
+					task->starting_address = NULL;
+					return RTX_ERR;
+				}
+				printf("%d\r\n", (int)MSP_INIT_VAL - (int)task->starting_address);
 			}
 			task->stack_high = task->starting_address; //set the stack high to the starting address
 			task->state = 1; //set the state to ready
 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
-			for (int i = 0; i < 14; i++) 
+			for (int i = 0; i < 14; i++)
 				*(--task->stack_high) = 0xA; //An arbitrary number, repeat
 			task_queue[i] = *task; //copy the task to the task queue
 			return RTX_OK;
