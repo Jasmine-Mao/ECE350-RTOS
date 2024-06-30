@@ -8,6 +8,7 @@ extern U32 _img_end; //the start of the heap will be from here, could add 0x200 
 extern U32 _estack;
 extern U32 _Min_Stack_Size;
 int k_mem_initialized = 0;
+int counter[MAX_ORDER+1] = {0};
 U32 heap_start = 0;
 U32 heap_end = 0;
 
@@ -29,6 +30,8 @@ int k_mem_init(){
         root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER - 1));
         root_block->status = 0;
         root_block->magic_number = MAGIC_NUMBER;
+
+        counter[11]++;
         //root_block->address = &heap_start+sizeof(header_block);
 
         header_array[MAX_ORDER - 1] = root_block;       // place the root memory block at the last index of the pointer array
@@ -92,9 +95,11 @@ void *k_mem_alloc(size_t size){
             buddy1->next = buddy2;
             buddy2->next = NULL;
 
+            counter[tracker]--;
             // decrement tracker
             tracker--;
             // set the next free list
+            counter[tracker]++;
             header_array[tracker] = buddy1;
         }
 
@@ -151,12 +156,16 @@ int k_mem_dealloc(void *ptr){
                     // now we remove the recently added note
                     header_array[block_level] = header_array[block_level]->next;
 
+                    counter[block_level]--;
+
                     // increment the block level to check if we need to coalesce at the parent level
                     block_level++;
                     
                     // add the new free block to the LL above
                     block_found->next = header_array[block_level];
                     header_array[block_level] = block_found;
+
+                    counter[block_level]++;
                     // insert the found block into the list above
                     // status is already set to 0
                 }
@@ -177,5 +186,16 @@ int k_mem_dealloc(void *ptr){
 }
 
 int k_mem_count_extfrag(size_t size){
-    
+	size_t temp = 32;
+	int index = 0;
+	int fragcount = 0;
+	while (temp <= size){
+		temp <<= 1;
+		index++;
+		if (index == 11) break;
+	}
+	for(int i = index; i >= 0; i--){
+		fragcount += counter[i];
+	}
+	return fragcount;
 }
