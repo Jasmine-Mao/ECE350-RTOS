@@ -24,11 +24,11 @@ int get_stack_address(TCB *task) {
 				task->starting_address = (int)task_queue[i - 1].starting_address //set the starting address to the previous task's starting address
 						- task->stack_size; //subtract the stack size
 				// if the calculated address is greater than 0x4000 away from task 1's address, we immediately return an error
-				if((int)MSP_INIT_VAL - (int)task->starting_address > MAX_STACK_SIZE){
-					task->starting_address = NULL;
-					return RTX_ERR;
-				}
-				printf("%d\r\n", (int)MSP_INIT_VAL - (int)task->starting_address);
+			}
+			int tester = (int)MSP_INIT_VAL - (int)task->starting_address;
+			if(tester > MAX_STACK_SIZE){
+				task->starting_address = NULL;
+				return RTX_ERR;
 			}
 			task->stack_high = task->starting_address; //set the stack high to the starting address
 			task->state = 1; //set the state to ready
