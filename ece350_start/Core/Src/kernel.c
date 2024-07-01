@@ -15,13 +15,13 @@ int current_tid_index = 0;	// indexer for what task is currently running
 TCB task_queue[MAX_TASKS] = { NULL };
 
 int get_stack_address(TCB *task) {
-	for (int i = 1; i < MAX_TASKS; i++) {
-		if (task_queue[i].starting_address == NULL //if the task is not initialized
-				&& task_queue[i].state == 0) { //if the task is dormant
+//	for (int i = 1; i < MAX_TASKS; i++) {
+		if (task_queue[task->tid].starting_address == NULL //if the task is not initialized
+				&& task_queue[task->tid].state == 0) { //if the task is dormant
 			if (task_counter == 0) { //if this is the first task
 				task->starting_address = (int) MSP_INIT_VAL - MAIN_STACK_SIZE; //set the starting address to the main stack, subtract the stack size
 			} else {
-				task->starting_address = (int)task_queue[i - 1].starting_address //set the starting address to the previous task's starting address
+				task->starting_address = (int)task_queue[task->tid - 1].starting_address //set the starting address to the previous task's starting address
 						- task->stack_size; //subtract the stack size
 				// if the calculated address is greater than 0x4000 away from task 1's address, we immediately return an error
 			}
@@ -36,28 +36,28 @@ int get_stack_address(TCB *task) {
 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
 			for (int i = 0; i < 14; i++)
 				*(--task->stack_high) = 0xA; //An arbitrary number, repeat
-			task_queue[i] = *task; //copy the task to the task queue
+			task_queue[task->tid] = *task; //copy the task to the task queue
 			return RTX_OK;
-		} else if (task_queue[i].state == 0 //if the task is dormant
-				&& task_queue[i].stack_size >= task->stack_size) { //reusing the stack
-			task->stack_size = task_queue[i].stack_size; //set the stack size to the previous task's stack size
+		} else if (task_queue[task->tid].state == 0 //if the task is dormant
+				&& task_queue[task->tid].stack_size >= task->stack_size) { //reusing the stack
+			task->stack_size = task_queue[task->tid].stack_size; //set the stack size to the previous task's stack size
 			task->state = 1; //set the state to ready
-			task->starting_address = task_queue[i].starting_address; //set the starting address to the previous task's starting address
-			task->stack_high = task_queue[i].starting_address; //set the stack high to the starting address
+			task->starting_address = task_queue[task->tid].starting_address; //set the starting address to the previous task's starting address
+			task->stack_high = task_queue[task->tid].starting_address; //set the stack high to the starting address
 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
 			for (int i = 0; i < 14; i++)
 				*(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
-			task_queue[i] = *task;
+			task_queue[task->tid] = *task;
 			return RTX_OK;
 		}
-	}
+	//}
 	return RTX_ERR;
 }
 
 void assign_TID(TCB *task) { //assigns a task ID to the task
 	for (int i = 1; i < 16; i++) {
-		if (task_queue[i].state == 0) {
+		if (task_queue[i].state == 0 && (task_queue[i].stack_size >= task->stack_size || task_queue[i].stack_size == 0)) {
 			task->tid = i;
 			return;
 		}
