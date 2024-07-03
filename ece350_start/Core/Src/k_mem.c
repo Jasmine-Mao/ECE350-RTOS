@@ -37,7 +37,7 @@ int k_mem_init(){
 
         header_array[MAX_ORDER] = root_block;       // place the root memory block at the last index of the pointer array
         //initialize the heap
-        
+
         return RTX_OK;
     }
 }
@@ -139,18 +139,19 @@ int k_mem_dealloc(void *ptr){
 				header_array[block_level] = block_found;
 			}
 			else{
+				block_found->next = header_array[block_level]->next;
 				header_array[block_level]->next = block_found;
 				block_found = header_array[block_level];
 			}
             counter[block_level]++;
 
             int continue_coalescing = 1;
-            while(continue_coalescing){
+            while(continue_coalescing && block_level < 11){
                 // find the buddy node
-                header_block *buddy = (header_block*)((char*)block_found + (1 << (block_level + MIN_BLOCK_ORDER)));
+                header_block *buddy = (header_block*)((char*)block_found + (1 << (block_level + MIN_BLOCK_ORDER - 1)));
 
                 // check if the buddy is in use or not
-                if(buddy->status == 0 && block_found->size == buddy->size){
+                if(buddy->status == 0 && block_found->size < 32768){
                     // need to find the element in the linked list
                     header_block *temp = header_array[block_level];
                     while(temp != NULL){
@@ -173,7 +174,7 @@ int k_mem_dealloc(void *ptr){
 
                     // increment the block level to check if we need to coalesce at the parent level
                     block_level++;
-                    
+
                     // add the new free block to the LL above
                     block_found->next = header_array[block_level];
                     block_found->size <<= 1;
