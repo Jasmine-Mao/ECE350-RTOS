@@ -28,16 +28,16 @@ int k_mem_init(){
 
         header_block *root_block = (header_block*)heap_start;       // create the very first free block encompassing all the free memory
         root_block->next = NULL;
-        root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER - 1));
+        root_block->size = (1 << (MAX_ORDER + MIN_BLOCK_ORDER));
         root_block->status = 0;
         root_block->magic_number = MAGIC_NUMBER;
 
-        counter[11]++;
+        counter[MAX_ORDER]++;
         //root_block->address = &heap_start+sizeof(header_block);
 
-        header_array[MAX_ORDER - 1] = root_block;       // place the root memory block at the last index of the pointer array
+        header_array[MAX_ORDER] = root_block;       // place the root memory block at the last index of the pointer array
         //initialize the heap
-
+        
         return RTX_OK;
     }
 }
@@ -101,6 +101,7 @@ void *k_mem_alloc(size_t size){
             tracker--;
             // set the next free list
             counter[tracker]++;
+            counter[tracker]++;
             header_array[tracker] = buddy1;
         }
 
@@ -108,6 +109,7 @@ void *k_mem_alloc(size_t size){
 
         header_array[block_level]->status = 1;
         header_array[block_level]->owner = current_task->tid;
+        counter[tracker]--;
         void *pointer = (char*)header_array[block_level]+sizeof(header_block);
         header_array[block_level] = (header_block*)header_array[block_level]->next;
 
@@ -131,8 +133,16 @@ int k_mem_dealloc(void *ptr){
             }
             // block level now found
             block_found->status = 0;
-            block_found->next = header_array[block_level];      // next pointer not points to the first thing in the list
-            header_array[block_level] = block_found;            // set the beginning of the list to our found block
+
+			if (header_array[block_level] > block_found || header_array[block_level] == NULL){
+				block_found->next = header_array[block_level];
+				header_array[block_level] = block_found;
+			}
+			else{
+				header_array[block_level]->next = block_found;
+				block_found = header_array[block_level];
+			}
+            counter[block_level]++;
 
             int continue_coalescing = 1;
             while(continue_coalescing){
@@ -159,12 +169,14 @@ int k_mem_dealloc(void *ptr){
                     header_array[block_level] = header_array[block_level]->next;
 
                     counter[block_level]--;
+                    counter[block_level]--;
 
                     // increment the block level to check if we need to coalesce at the parent level
                     block_level++;
-
+                    
                     // add the new free block to the LL above
                     block_found->next = header_array[block_level];
+                    block_found->size <<= 1;
                     header_array[block_level] = block_found;
 
                     counter[block_level]++;
@@ -196,7 +208,7 @@ int k_mem_count_extfrag(size_t size){
 		index++;
 		if (index == 11) break;
 	}
-	for(int i = index; i >= 0; i--){
+	for(int i = index - 1; i >= 0; i--){
 		fragcount += counter[i];
 	}
 	return fragcount;
