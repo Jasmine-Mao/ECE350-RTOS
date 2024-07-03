@@ -148,10 +148,10 @@ int k_mem_dealloc(void *ptr){
             int continue_coalescing = 1;
             while(continue_coalescing && block_level < 11){
                 // find the buddy node
-                header_block *buddy = (header_block*)((char*)block_found + (1 << (block_level + MIN_BLOCK_ORDER - 1)));
+                header_block *buddy = (header_block*)((char*)block_found + (1 << (block_level + MIN_BLOCK_ORDER)));
 
                 // check if the buddy is in use or not
-                if(buddy->status == 0 && block_found->size < 32768){
+                if(buddy->status == 0 && block_found->size < 32768 && block_found->size == buddy->size){
                     // need to find the element in the linked list
                     header_block *temp = header_array[block_level];
                     while(temp != NULL){
