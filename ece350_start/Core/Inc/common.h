@@ -51,7 +51,8 @@ typedef struct header {
 	U32 status;					// free/used, free = 0, used = 1
 	U32 size;					// size of the total block of memory
 	struct header_block *next;	// next free/occupied block, depending on which list it is for
-	int magic_number
+	int magic_number;
+	int owner;
 } header_block;
 
 #endif /* INC_COMMON_H_ */

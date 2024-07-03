@@ -11,6 +11,7 @@ int k_mem_initialized = 0;
 int counter[MAX_ORDER+1] = {0};
 U32 heap_start = 0;
 U32 heap_end = 0;
+extern TCB* current_task;
 
 header_block *header_array[MAX_ORDER+1] = {NULL};  // array of 11 pointers for the 11 levels; initially set to NULL
 
@@ -36,7 +37,7 @@ int k_mem_init(){
 
         header_array[MAX_ORDER - 1] = root_block;       // place the root memory block at the last index of the pointer array
         //initialize the heap
-        
+
         return RTX_OK;
     }
 }
@@ -106,6 +107,7 @@ void *k_mem_alloc(size_t size){
         // now we have a free block we can manipulate
 
         header_array[block_level]->status = 1;
+        header_array[block_level]->owner = current_task->tid;
         void *pointer = (char*)header_array[block_level]+sizeof(header_block);
         header_array[block_level] = (header_block*)header_array[block_level]->next;
 
@@ -121,7 +123,7 @@ int k_mem_dealloc(void *ptr){
     else{
         header_block *block_found = (header_block*)((char*)ptr - sizeof(header_block));
         // check the magic number of the header we found
-        if(block_found->magic_number == MAGIC_NUMBER){
+        if(block_found->magic_number == MAGIC_NUMBER && block_found->owner == current_task->tid){
             // we know that this header we found is something we allocated
             int block_level = 0;
             while(block_found->size != (1 << (block_level + MIN_BLOCK_ORDER))){
@@ -160,7 +162,7 @@ int k_mem_dealloc(void *ptr){
 
                     // increment the block level to check if we need to coalesce at the parent level
                     block_level++;
-                    
+
                     // add the new free block to the LL above
                     block_found->next = header_array[block_level];
                     header_array[block_level] = block_found;
