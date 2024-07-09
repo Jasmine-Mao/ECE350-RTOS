@@ -32,6 +32,7 @@ int get_stack_address(TCB *task) {
 			}
 			task->stack_high = task->starting_address; //set the stack high to the starting address
 			task->state = 1; //set the state to ready
+			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
 			for (int i = 0; i < 14; i++)
@@ -42,6 +43,7 @@ int get_stack_address(TCB *task) {
 				&& task_queue[task->tid].stack_size >= task->stack_size) { //reusing the stack
 			task->stack_size = task_queue[task->tid].stack_size; //set the stack size to the previous task's stack size
 			task->state = 1; //set the state to ready
+			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
 			task->starting_address = task_queue[task->tid].starting_address; //set the starting address to the previous task's starting address
 			task->stack_high = task_queue[task->tid].starting_address; //set the stack high to the starting address
 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
@@ -129,6 +131,7 @@ int osTaskInfo(task_t TID, TCB *task_copy) {
 			task_copy->stack_size = task_queue[i].stack_size;
 			task_copy->state = task_queue[i].state;
 			task_copy->tid = task_queue[i].tid;
+			task_copy->deadline = task_queue[i].deadline;
 			return RTX_OK;
 		}
 	}
@@ -168,4 +171,20 @@ int osCreateTask(TCB *task) {
 void osYield(void) {
 	if (!first_run && initialized)
 		__asm("SVC #1"); //call case 1 which is to enter PendSV which is store, scheduler and load
+}
+
+void osSleep(int time_in_ms){
+
+}
+
+void osPeriodYield(){
+
+}
+
+int osSetDeadline(int deadline, task_t tid){
+
+}
+
+int osCreateDeadlineTask(int deadline, TCB* task){
+	
 }

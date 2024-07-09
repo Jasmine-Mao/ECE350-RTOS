@@ -15,6 +15,10 @@ int osCreateTask(TCB *task);
 void osYield(void);
 
 int is_empty();
-int enqueue(TCB *current_task);
+
+void osSleep(int time_in_ms);
+void osPeriodYield();
+int osSetDeadline(int deadline, task_t tid);
+int osCreateDeadlineTask(int deadline, TCB* task);
 
 #endif // KERNEL_H
