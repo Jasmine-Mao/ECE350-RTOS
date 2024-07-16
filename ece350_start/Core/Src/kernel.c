@@ -12,6 +12,8 @@ int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
 
+int earliest_deadline_tid = 0;
+
 TCB task_queue[MAX_TASKS] = { NULL };
 
 int get_stack_address(TCB *task) {
@@ -169,12 +171,16 @@ int osCreateTask(TCB *task) {
 }
 
 void osYield(void) {
+	current_task->remaining_time = current_task->deadline;
 	if (!first_run && initialized)
 		__asm("SVC #1"); //call case 1 which is to enter PendSV which is store, scheduler and load
 }
 
 void osSleep(int time_in_ms){
-
+	current_task->state = 3;
+	current_task->time_sleeping = time_in_ms;
+	if (!first_run && initialized)
+		__asm("SVC #1"); //call case 1 which is to enter PendSV which is store, scheduler and load
 }
 
 void osPeriodYield(){
@@ -182,9 +188,16 @@ void osPeriodYield(){
 }
 
 int osSetDeadline(int deadline, task_t tid){
-
+	task_queue[tid].deadline = deadline;
+	// look for the given tid in the task array
+	// set the deadline to the specified
+	// once again pick the smallest deadline task to run (EDF)
 }
 
 int osCreateDeadlineTask(int deadline, TCB* task){
-	
+	if(deadline == 0 || deadline < 0){
+		return RTX_ERR;
+	}
+	osCreateTask(task);
+	osSetDeadline(deadline, task->tid);
 }

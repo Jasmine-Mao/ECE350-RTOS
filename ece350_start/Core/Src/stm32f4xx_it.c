@@ -20,9 +20,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
+#include "common.h"
 #include <stdio.h>
+#include "kernel.h"
+
+extern TCB* current_task;
+extern TCB task_queue[MAX_TASKS];
 
 extern void Case2(void);
+extern void osYield();
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -206,7 +212,25 @@ void SysTick_Handler(void) {
 	/* USER CODE END SysTick_IRQn 0 */
 	HAL_IncTick();
 	/* USER CODE BEGIN SysTick_IRQn 1 */
-
+	for(int i = 1; i < MAX_TASKS; i++){
+		if(task_queue[i].state == 1 || task_queue[i].state == 2){
+			// either ready or running
+			task_queue[i].remaining_time--;
+			if(task_queue[i].remaining_time == 0){
+				task_queue[i].remaining_time = task_queue[i].deadline;
+			}
+		}
+		if(task_queue[i].state == 3){
+			task_queue[i].time_sleeping--;
+			if(task_queue[i].time_sleeping == 0){
+				task_queue[i].state = 1;
+			}
+		}
+	}
+	current_task->remaining_time--;
+	if(current_task->remaining_time == 0){
+		osYield();
+	}
 	/* USER CODE END SysTick_IRQn 1 */
 }
 
