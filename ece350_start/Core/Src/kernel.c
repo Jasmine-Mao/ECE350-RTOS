@@ -4,6 +4,7 @@
 #include "kernel.h"
 #include <stdio.h>
 #include "k_mem.h"
+#include <stdbool.h>
 U32 *MSP_INIT_VAL;
 //= *(U32**)0x0;
 // ^gets set when kernel init runs
@@ -12,6 +13,7 @@ int initialized = 0;
 int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
+bool skip_yield = false;
 
 
 TCB task_queue[MAX_TASKS] = { NULL };
@@ -204,7 +206,9 @@ int osCreateTask(TCB *task) {
 		assign_TID(task); //assign a TID to the task
 		if (get_stack_address(task) == RTX_ERR) return RTX_ERR; //get the stack address for the task
 		task_counter++; //increment the task counter
-		osYield();
+		if (!skip_yield){
+			osYield();
+		}
 		return RTX_OK;
 	} else
 		return RTX_ERR;
@@ -240,8 +244,12 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 	if(deadline == 0 || deadline < 0){
 		return RTX_ERR;
 	}
-	osCreateTask(task);
-	osSetDeadline(deadline, task->tid);
+	skip_yield = true;
+	int result = osCreateTask(task);
+	skip_yield = false;
+	if (result == RTX_OK){
+		osSetDeadline(deadline, task->tid);
+	}
 }
 
 int find_earliest_deadline(){
