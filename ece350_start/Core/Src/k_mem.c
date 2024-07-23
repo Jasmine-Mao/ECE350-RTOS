@@ -53,14 +53,13 @@ void *k_mem_alloc(size_t size){
         size += sizeof(header_block);   // add the header to the size
         int block_level = -1;
         for(int i = MIN_BLOCK_ORDER; i <= MIN_BLOCK_ORDER + MAX_ORDER; i++){       // find what memory block size is needed to accomodate
-            if(size < (1 << i)){
+            if(size <= (1 << i)){
                 block_level = i - MIN_BLOCK_ORDER;      // block order is now the index value needed to find blocks of the size we need
                 break;
             }
         }
         if(block_level == -1){
             // we didn't find an appropriate size :(
-            printf("couldn't fund sufficient block size. exiting...\n");
             return NULL;
         }
         // check the header array at index block_level. this will be the list of free blocks or the desired size
@@ -125,7 +124,7 @@ int k_mem_dealloc(void *ptr){
     else{
         header_block *block_found = (header_block*)((char*)ptr - sizeof(header_block));
         // check the magic number of the header we found
-        if(block_found->magic_number == MAGIC_NUMBER && block_found->owner == current_task->tid){
+        if(block_found->magic_number == MAGIC_NUMBER && block_found->owner == current_task->tid && block_found->status == 1){
             // we know that this header we found is something we allocated
             int block_level = 0;
             while(block_found->size != (1 << (block_level + MIN_BLOCK_ORDER))){
