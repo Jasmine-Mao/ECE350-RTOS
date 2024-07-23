@@ -222,9 +222,7 @@ void osSleep(int time_in_ms){
 }
 
 void osPeriodYield(){
-	//calculate the remaining time left for the program to run
-	//sleep the task for the calculated time
-	//rerun the task after the time has elapsed
+	osSleep(current_task->deadline - current_task->remaining_time);
 }
 
 int osSetDeadline(int deadline, task_t tid){
