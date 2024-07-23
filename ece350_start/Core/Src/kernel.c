@@ -201,3 +201,23 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 	osCreateTask(task);
 	osSetDeadline(deadline, task->tid);
 }
+
+int find_earliest_deadline(){
+	int earliest_deadline = 0;
+	for(int i = 1; i < MAX_TASKS; i++){
+		if(task_queue[i].state == 1){
+			if(earliest_deadline == 0){
+				earliest_deadline = task_queue[i].deadline;
+				earliest_deadline_tid = i;
+			}
+			else if(task_queue[i].deadline < earliest_deadline){
+				earliest_deadline = task_queue[i].deadline;
+				earliest_deadline_tid = i;
+			}
+			else if(task_queue[i].deadline == earliest_deadline){
+				earliest_deadline_tid = (earliest_deadline_tid < i) ? earliest_deadline_tid : i;
+			}
+		}
+	}
+	return earliest_deadline_tid;
+}
