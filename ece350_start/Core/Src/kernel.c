@@ -232,6 +232,7 @@ int osSetDeadline(int deadline, task_t tid){
 	// look for the given tid in the task array
 	// set the deadline to the specified
 	// once again pick the smallest deadline task to run (EDF)
+	osYield();
 }
 
 int osCreateDeadlineTask(int deadline, TCB* task){
