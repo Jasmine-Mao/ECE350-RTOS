@@ -16,46 +16,60 @@ int current_tid_index = 0;	// indexer for what task is currently running
 TCB task_queue[MAX_TASKS] = { NULL };
 
 int get_stack_address(TCB *task) {
-//	for (int i = 1; i < MAX_TASKS; i++) {
-		if (task_queue[task->tid].starting_address == NULL //if the task is not initialized
-				&& task_queue[task->tid].state == 0) { //if the task is dormant
-			if (task_counter == 0) { //if this is the first task
-				task->starting_address = (int) MSP_INIT_VAL - MAIN_STACK_SIZE; //set the starting address to the main stack, subtract the stack size
-			} else {
-				task->starting_address = (int)task_queue[task->tid - 1].starting_address //set the starting address to the previous task's starting address
-						- task->stack_size; //subtract the stack size
-				// if the calculated address is greater than 0x4000 away from task 1's address, we immediately return an error
-			}
-			int tester = (int)MSP_INIT_VAL - (int)task->starting_address;
-			if(tester > MAX_STACK_SIZE){
-				task->starting_address = NULL;
-				return RTX_ERR;
-			}
-			task->stack_high = task->starting_address; //set the stack high to the starting address
-			task->state = 1; //set the state to ready
-			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
-			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
-			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
-			for (int i = 0; i < 14; i++)
-				*(--task->stack_high) = 0xA; //An arbitrary number, repeat
-			task_queue[task->tid] = *task; //copy the task to the task queue
-			return RTX_OK;
-		} else if (task_queue[task->tid].state == 0 //if the task is dormant
-				&& task_queue[task->tid].stack_size >= task->stack_size) { //reusing the stack
-			task->stack_size = task_queue[task->tid].stack_size; //set the stack size to the previous task's stack size
-			task->state = 1; //set the state to ready
-			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
-			task->starting_address = task_queue[task->tid].starting_address; //set the starting address to the previous task's starting address
-			task->stack_high = task_queue[task->tid].starting_address; //set the stack high to the starting address
-			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
-			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
-			for (int i = 0; i < 14; i++)
-				*(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
-			task_queue[task->tid] = *task;
-			return RTX_OK;
-		}
-	//}
-	return RTX_ERR;
+	void* starting_address = k_mem_alloc(task->stack_size);		// allocate a stack_size amount of memory usin k_mem_alloc
+	if(starting_address == NULL)
+		return RTX_ERR;											// return error if we weren't able to allocate the correct size
+	task->starting_address = starting_address;
+	task->stack_high = task->starting_address; 					//set the stack high to the starting address
+	task->state = 1; 											//set the state to ready
+	task->deadline = DEFAULT_DEADLINE; 							// give the created task a default deadline of 5ms
+	*(--task->stack_high) = 1 << 24; 							//This is xPSR, setting the chip to Thumb mode
+	*(--task->stack_high) = (uint32_t) (task->ptask); 			//the function name
+	for (int i = 0; i < 14; i++)
+		*(--task->stack_high) = 0xA; 							//An arbitrary number, repeat
+	task_queue[task->tid] = *task; 								//copy the task to the task queue
+	return RTX_OK;
+
+// //	for (int i = 1; i < MAX_TASKS; i++) {
+// 		if (task_queue[task->tid].starting_address == NULL //if the task is not initialized
+// 				&& task_queue[task->tid].state == 0) { //if the task is dormant
+// 			if (task_counter == 0) { //if this is the first task
+// 				task->starting_address = (int) MSP_INIT_VAL - MAIN_STACK_SIZE; //set the starting address to the main stack, subtract the stack size
+// 			} else {
+// 				task->starting_address = (int)task_queue[task->tid - 1].starting_address //set the starting address to the previous task's starting address
+// 						- task->stack_size; //subtract the stack size
+// 				// if the calculated address is greater than 0x4000 away from task 1's address, we immediately return an error
+// 			}
+// 			int tester = (int)MSP_INIT_VAL - (int)task->starting_address;
+// 			if(tester > MAX_STACK_SIZE){
+// 				task->starting_address = NULL;
+// 				return RTX_ERR;
+// 			}
+// 			task->stack_high = task->starting_address; //set the stack high to the starting address
+// 			task->state = 1; //set the state to ready
+// 			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
+// 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
+// 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
+// 			for (int i = 0; i < 14; i++)
+// 				*(--task->stack_high) = 0xA; //An arbitrary number, repeat
+// 			task_queue[task->tid] = *task; //copy the task to the task queue
+// 			return RTX_OK;
+// 		} else if (task_queue[task->tid].state == 0 //if the task is dormant
+// 				&& task_queue[task->tid].stack_size >= task->stack_size) { //reusing the stack
+// 			task->stack_size = task_queue[task->tid].stack_size; //set the stack size to the previous task's stack size
+// 			task->state = 1; //set the state to ready
+// 			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
+// 			task->starting_address = task_queue[task->tid].starting_address; //set the starting address to the previous task's starting address
+// 			task->stack_high = task_queue[task->tid].starting_address; //set the stack high to the starting address
+// 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
+// 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
+// 			for (int i = 0; i < 14; i++)
+// 				*(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
+// 			task_queue[task->tid] = *task;
+// 			return RTX_OK;
+// 		}
+// 	//}
+// 	return RTX_ERR;
 }
 
 void assign_TID(TCB *task) { //assigns a task ID to the task
@@ -171,6 +185,8 @@ task_t osGetTID(void) {
 int osTaskExit(void) {
 	if (!first_run && initialized) { //if this is not the first run and the kernel is initialized
 		task_queue[current_task->tid].state = 0; //set the current task to dormant
+		if(k_mem_dealloc(task_queue[current_task->tid].starting_address) == RTX_ERR)
+			return RTX_ERR;
 		task_counter--; //decrement the task counter
 		__asm("SVC #1"); //call case 2 which is just scheduler and load new task
 		return RTX_OK;
@@ -206,7 +222,9 @@ void osSleep(int time_in_ms){
 }
 
 void osPeriodYield(){
-
+	//calculate the remaining time left for the program to run
+	//sleep the task for the calculated time
+	//rerun the task after the time has elapsed
 }
 
 int osSetDeadline(int deadline, task_t tid){

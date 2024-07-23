@@ -54,7 +54,10 @@ typedef struct header {
 	U32 size;					// size of the total block of memory
 	struct header_block *next;	// next free/occupied block, depending on which list it is for
 	int magic_number;
+<<<<<<< Updated upstream
 	int owner;
+=======
+>>>>>>> Stashed changes
 } header_block;
 
 #endif /* INC_COMMON_H_ */
