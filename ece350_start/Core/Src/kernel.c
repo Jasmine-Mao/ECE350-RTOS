@@ -247,7 +247,7 @@ int find_earliest_deadline(){
 	int earliest_deadline = 0;
 	int earliest_deadline_tid = 0;
 	for(int i = 1; i < MAX_TASKS; i++){
-		if(task_queue[i].state == 1){
+		if(task_queue[i].state == 1 || task_queue[i].state == 2){
 			if(earliest_deadline == 0){
 				earliest_deadline = task_queue[i].deadline;
 				earliest_deadline_tid = i;
