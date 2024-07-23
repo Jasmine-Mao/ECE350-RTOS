@@ -12,7 +12,6 @@ int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
 
-int earliest_deadline_tid = 0;
 
 TCB task_queue[MAX_TASKS] = { NULL };
 
@@ -84,6 +83,31 @@ TCB* find_TCB(task_t tid_input) { //finds the TCB with the given TID [REDUNDANT]
 	return NULL;
 }
 
+// void scheduler() {
+// 	if (!is_empty()) { //if the task queue is not empty
+// 		if (current_task != NULL && current_task->state) { //if the current task is not null and has a state
+// 			task_queue[current_task->tid].state = 1; //set the current task to ready
+// 			task_queue[current_task->tid].stack_high = __get_PSP(); //set the stack high to the process stack pointer
+// 		}
+// 		int start_index = current_tid_index; // Save the starting index
+// 		do {
+// 			current_tid_index = (current_tid_index + 1) % MAX_TASKS; // Increment the index
+
+// 			if (current_tid_index == 0) { //If we reach null task, skip it
+// 				current_tid_index = 1;
+// 			}
+// 			if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
+// 				task_queue[current_tid_index].state = 2; //Set the task to running
+// 				current_task = &task_queue[current_tid_index]; // Same as old scheduler
+// 				__set_PSP(current_task->stack_high); // Set the PSP to the stack high
+// 				// should be able to return from here after the svc call
+// 				return;
+// 			}
+// 		} while (current_tid_index != start_index); // Loop until we come back to the start index so we don't do infinite loop
+// 	}
+// }
+
+//change scheduler to use earliest deadline first
 void scheduler() {
 	if (!is_empty()) { //if the task queue is not empty
 		if (current_task != NULL && current_task->state) { //if the current task is not null and has a state
@@ -92,11 +116,8 @@ void scheduler() {
 		}
 		int start_index = current_tid_index; // Save the starting index
 		do {
-			current_tid_index = (current_tid_index + 1) % MAX_TASKS; // Increment the index
+			current_tid_index = find_earliest_deadline(); // Increment the index
 
-			if (current_tid_index == 0) { //If we reach null task, skip it
-				current_tid_index = 1;
-			}
 			if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
 				task_queue[current_tid_index].state = 2; //Set the task to running
 				current_task = &task_queue[current_tid_index]; // Same as old scheduler
@@ -165,6 +186,7 @@ int osCreateTask(TCB *task) {
 		assign_TID(task); //assign a TID to the task
 		if (get_stack_address(task) == RTX_ERR) return RTX_ERR; //get the stack address for the task
 		task_counter++; //increment the task counter
+		osYield();
 		return RTX_OK;
 	} else
 		return RTX_ERR;
@@ -204,6 +226,7 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 
 int find_earliest_deadline(){
 	int earliest_deadline = 0;
+	int earliest_deadline_tid = 0;
 	for(int i = 1; i < MAX_TASKS; i++){
 		if(task_queue[i].state == 1){
 			if(earliest_deadline == 0){
