@@ -229,7 +229,9 @@ void SysTick_Handler(void) {
 	}
 	current_task->remaining_time--;
 	if(current_task->remaining_time == 0){
-		osYield();
+		current_task->remaining_time = current_task->deadline;
+		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
+		__asm("isb"); //instruction synchronization barrier same as in case 2
 	}
 	/* USER CODE END SysTick_IRQn 1 */
 }

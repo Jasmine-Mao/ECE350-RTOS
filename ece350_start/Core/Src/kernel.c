@@ -3,6 +3,7 @@
 #include "main.h"
 #include "kernel.h"
 #include <stdio.h>
+#include "k_mem.h"
 U32 *MSP_INIT_VAL;
 //= *(U32**)0x0;
 // ^gets set when kernel init runs
@@ -23,6 +24,7 @@ int get_stack_address(TCB *task) {
 	task->stack_high = task->starting_address; 					//set the stack high to the starting address
 	task->state = 1; 											//set the state to ready
 	task->deadline = DEFAULT_DEADLINE; 							// give the created task a default deadline of 5ms
+	task->remaining_time = task->deadline;
 	*(--task->stack_high) = 1 << 24; 							//This is xPSR, setting the chip to Thumb mode
 	*(--task->stack_high) = (uint32_t) (task->ptask); 			//the function name
 	for (int i = 0; i < 14; i++)
@@ -209,9 +211,10 @@ int osCreateTask(TCB *task) {
 }
 
 void osYield(void) {
-	current_task->remaining_time = current_task->deadline;
-	if (!first_run && initialized)
+	if (!first_run && initialized){
+		current_task->remaining_time = current_task->deadline;
 		__asm("SVC #1"); //call case 1 which is to enter PendSV which is store, scheduler and load
+	}
 }
 
 void osSleep(int time_in_ms){
@@ -247,14 +250,14 @@ int find_earliest_deadline(){
 	for(int i = 1; i < MAX_TASKS; i++){
 		if(task_queue[i].state == 1 || task_queue[i].state == 2){
 			if(earliest_deadline == 0){
-				earliest_deadline = task_queue[i].deadline;
+				earliest_deadline = task_queue[i].remaining_time;
 				earliest_deadline_tid = i;
 			}
-			else if(task_queue[i].deadline < earliest_deadline){
-				earliest_deadline = task_queue[i].deadline;
+			else if(task_queue[i].remaining_time < earliest_deadline){
+				earliest_deadline = task_queue[i].remaining_time;
 				earliest_deadline_tid = i;
 			}
-			else if(task_queue[i].deadline == earliest_deadline){
+			else if(task_queue[i].remaining_time == earliest_deadline){
 				earliest_deadline_tid = (earliest_deadline_tid < i) ? earliest_deadline_tid : i;
 			}
 		}
