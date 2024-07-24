@@ -7,31 +7,30 @@
 #define  ARM_CM_DEMCR      (*(uint32_t *)0xE000EDFC)
 #define  ARM_CM_DWT_CTRL   (*(uint32_t *)0xE0001000)
 #define  ARM_CM_DWT_CYCCNT (*(uint32_t *)0xE0001004)
-int i_cnt;
 
-void Task1(void *) {
+int i_test = 0;
+
+int i_test2 = 0;
+
+
+void TaskA(void *) {
    while(1){
-     printf("1\r\n");
-     for (i_cnt = 0; i_cnt < 5000; i_cnt++);
-     osYield();
+      printf("%d, %d\r\n", i_test, i_test2);
+      osPeriodYield();
    }
 }
 
-
-void Task2(void *) {
+void TaskB(void *) {
    while(1){
-     printf("2\r\n");
-     for (i_cnt = 0; i_cnt < 5000; i_cnt++);
-     osYield();
+      i_test = i_test + 1;
+      osPeriodYield();
    }
 }
 
-
-void Task3(void *) {
+void TaskC(void *) {
    while(1){
-     printf("3\r\n");
-     for (i_cnt = 0; i_cnt < 5000; i_cnt++);
-     osYield();
+      i_test2 = i_test2 + 1;
+      osPeriodYield();
    }
 }
 
@@ -54,18 +53,18 @@ int main(void)
 
   	osKernelInit();
   	k_mem_init();
-  TCB st_mytask;
-	st_mytask.stack_size = STACK_SIZE;
-	st_mytask.ptask = &Task1;
-	osCreateTask(&st_mytask);
 
+  	TCB st_mytask;
+  st_mytask.stack_size = STACK_SIZE;
+  st_mytask.ptask = &TaskA;
+  osCreateDeadlineTask(4, &st_mytask);
 
-	st_mytask.ptask = &Task2;
-	osCreateTask(&st_mytask);
+  st_mytask.ptask = &TaskB;
+  osCreateDeadlineTask(4, &st_mytask); 
 
+  st_mytask.ptask = &TaskC;
+  osCreateDeadlineTask(12, &st_mytask);
 
-	st_mytask.ptask = &Task3;
-	osCreateTask(&st_mytask);
   	osKernelStart();
 
 

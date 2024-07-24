@@ -13,6 +13,7 @@ int initialized = 0;
 int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
+int allSleeping = 0;
 bool skip_yield = false;
 
 
@@ -128,14 +129,17 @@ TCB* find_TCB(task_t tid_input) { //finds the TCB with the given TID [REDUNDANT]
 //change scheduler to use earliest deadline first
 void scheduler() {
 	if (!is_empty()) { //if the task queue is not empty
-		if (current_task != NULL && current_task->state) { //if the current task is not null and has a state
+		if (current_task != NULL && current_task->state && current_task->state != 3) { //if the current task is not null and has a state
 			task_queue[current_task->tid].state = 1; //set the current task to ready
 			task_queue[current_task->tid].stack_high = __get_PSP(); //set the stack high to the process stack pointer
 		}
 		int start_index = current_tid_index; // Save the starting index
 		do {
 			current_tid_index = find_earliest_deadline(); // Increment the index
-
+			if (!current_tid_index){
+				allSleeping = 1;
+				return;
+			}
 			if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
 				task_queue[current_tid_index].state = 2; //Set the task to running
 				current_task = &task_queue[current_tid_index]; // Same as old scheduler
@@ -222,22 +226,29 @@ void osYield(void) {
 }
 
 void osSleep(int time_in_ms){
-	current_task->state = 3;
-	current_task->time_sleeping = time_in_ms;
-	if (!first_run && initialized)
+	if (!first_run && initialized){
+		current_task->state = 3;
+		current_task->time_sleeping = time_in_ms;
 		__asm("SVC #1"); //call case 1 which is to enter PendSV which is store, scheduler and load
+		while(1);
+	}
 }
 
 void osPeriodYield(){
-	osSleep(current_task->deadline - current_task->remaining_time);
+	if (current_task->remaining_time) osSleep(current_task->remaining_time);
+	else __asm("SVC #1");
 }
 
 int osSetDeadline(int deadline, task_t tid){
+	if (deadline <= 0 || task_queue[tid].state == 0) return RTX_ERR;
+	else{
 	task_queue[tid].deadline = deadline;
+	task_queue[tid].remaining_time = deadline;
 	// look for the given tid in the task array
 	// set the deadline to the specified
 	// once again pick the smallest deadline task to run (EDF)
-	osYield();
+	}
+	return RTX_OK;
 }
 
 int osCreateDeadlineTask(int deadline, TCB* task){
@@ -248,8 +259,9 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 	int result = osCreateTask(task);
 	skip_yield = false;
 	if (result == RTX_OK){
-		osSetDeadline(deadline, task->tid);
+		if (osSetDeadline(deadline, task->tid) == RTX_ERR) return RTX_ERR;
 	}
+	return RTX_OK;
 }
 
 int find_earliest_deadline(){
