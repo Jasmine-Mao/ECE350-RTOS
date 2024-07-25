@@ -13,11 +13,14 @@ int initialized = 0;
 int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
-int allSleeping = 0;
-bool skip_yield = false;
+int skip_yield = 0;
 
 
 TCB task_queue[MAX_TASKS] = { NULL };
+
+void null_task(){
+	while(1){}
+}
 
 int get_stack_address(TCB *task) {
 	void* starting_address = k_mem_alloc(task->stack_size);		// allocate a stack_size amount of memory usin k_mem_alloc
@@ -129,18 +132,14 @@ TCB* find_TCB(task_t tid_input) { //finds the TCB with the given TID [REDUNDANT]
 //change scheduler to use earliest deadline first
 void scheduler() {
 	if (!is_empty()) { //if the task queue is not empty
-		if (current_task != NULL && current_task->state && current_task->state != 3) { //if the current task is not null and has a state
-			task_queue[current_task->tid].state = 1; //set the current task to ready
+		if (current_task != NULL && current_task->state) { //if the current task is not null and has a state
+			if (current_task->state != 3) task_queue[current_task->tid].state = 1; //set the current task to ready
 			task_queue[current_task->tid].stack_high = __get_PSP(); //set the stack high to the process stack pointer
 		}
 		int start_index = current_tid_index; // Save the starting index
 		do {
 			current_tid_index = find_earliest_deadline(); // Increment the index
-			if (!current_tid_index){
-				allSleeping = 1;
-				return;
-			}
-			if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
+			if (task_queue[current_tid_index].state == 1 || !current_tid_index) { //If the task is available/ready
 				task_queue[current_tid_index].state = 2; //Set the task to running
 				current_task = &task_queue[current_tid_index]; // Same as old scheduler
 				__set_PSP(current_task->stack_high); // Set the PSP to the stack high
@@ -164,6 +163,12 @@ void osKernelInit() {
 	MSP_INIT_VAL = *(U32**) 0x0; //set the MSP_INIT_VAL to the value at address 0
 	current_task = NULL; //set the current task to null
 	initialized = 1; //set initialized to true
+	k_mem_init();
+	TCB nulltask;
+	nulltask.stack_size = STACK_SIZE;
+	nulltask.ptask = &null_task;
+	nulltask.tid = 0;
+	get_stack_address(&nulltask);
 }
 
 int osTaskInfo(task_t TID, TCB *task_copy) {
@@ -229,24 +234,25 @@ void osSleep(int time_in_ms){
 	if (!first_run && initialized){
 		current_task->state = 3;
 		current_task->time_sleeping = time_in_ms;
-		__asm("SVC #1"); //call case 1 which is to enter PendSV which is store, scheduler and load
-		while(1);
+		__asm("SVC #1");
 	}
 }
 
 void osPeriodYield(){
-	if (current_task->remaining_time) osSleep(current_task->remaining_time);
-	else __asm("SVC #1");
+	if (!first_run && initialized){
+		if (current_task->remaining_time) osSleep(current_task->remaining_time);
+		else __asm("SVC #1");
+	}
 }
 
 int osSetDeadline(int deadline, task_t tid){
 	if (deadline <= 0 || task_queue[tid].state == 0) return RTX_ERR;
 	else{
-	task_queue[tid].deadline = deadline;
-	task_queue[tid].remaining_time = deadline;
-	// look for the given tid in the task array
-	// set the deadline to the specified
-	// once again pick the smallest deadline task to run (EDF)
+		task_queue[tid].deadline = deadline;
+		task_queue[tid].remaining_time = deadline;
+		// look for the given tid in the task array
+		// set the deadline to the specified
+		// once again pick the smallest deadline task to run (EDF)
 	}
 	return RTX_OK;
 }
@@ -255,12 +261,14 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 	if(deadline == 0 || deadline < 0){
 		return RTX_ERR;
 	}
-	skip_yield = true;
+	skip_yield = 1;
 	int result = osCreateTask(task);
-	skip_yield = false;
+	skip_yield = 0;
 	if (result == RTX_OK){
 		if (osSetDeadline(deadline, task->tid) == RTX_ERR) return RTX_ERR;
 	}
+	else return RTX_ERR;
+	osPeriodYield();
 	return RTX_OK;
 }
 
