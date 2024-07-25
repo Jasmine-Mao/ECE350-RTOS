@@ -26,6 +26,7 @@
 
 extern TCB* current_task;
 extern TCB task_queue[MAX_TASKS];
+extern int allSleeping;
 
 extern void Case2(void);
 extern void osYield();
@@ -212,6 +213,7 @@ void SysTick_Handler(void) {
 	/* USER CODE END SysTick_IRQn 0 */
 	HAL_IncTick();
 	/* USER CODE BEGIN SysTick_IRQn 1 */
+	int doneSleeping = 0;
 	for(int i = 1; i < MAX_TASKS; i++){
 		if(task_queue[i].state == 1 || task_queue[i].state == 2){
 			// either ready or running
@@ -224,12 +226,17 @@ void SysTick_Handler(void) {
 			task_queue[i].time_sleeping--;
 			if(task_queue[i].time_sleeping == 0){
 				task_queue[i].state = 1;
+				doneSleeping = 1;
 			}
 		}
 	}
-	current_task->remaining_time--;
+	if(current_task->tid) current_task->remaining_time--;
 	if(current_task->remaining_time == 0){
 		current_task->remaining_time = current_task->deadline;
+		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
+		__asm("isb"); //instruction synchronization barrier same as in case 2
+	}
+	if (allSleeping && doneSleeping){
 		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
 		__asm("isb"); //instruction synchronization barrier same as in case 2
 	}
