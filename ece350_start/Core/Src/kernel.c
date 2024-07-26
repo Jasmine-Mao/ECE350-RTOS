@@ -15,6 +15,7 @@ int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
 int skip_yield = 0;
 int allSleeping = 0;
+int taskCreated = 0;
 
 
 TCB task_queue[MAX_TASKS] = { NULL };
@@ -24,11 +25,12 @@ void null_task(){
 }
 
 int get_stack_address(TCB *task) {
+	taskCreated = task->tid;
 	void* starting_address = k_mem_alloc(task->stack_size);		// allocate a stack_size amount of memory usin k_mem_alloc
 	if(starting_address == NULL)
 		return RTX_ERR;											// return error if we weren't able to allocate the correct size
 	task->starting_address = starting_address;
-	task->stack_high = task->starting_address; 					//set the stack high to the starting address
+	task->stack_high = task->starting_address+0x00002000; 					//set the stack high to the starting address
 	task->state = 1; 											//set the state to ready
 	task->deadline = DEFAULT_DEADLINE; 							// give the created task a default deadline of 5ms
 	task->remaining_time = task->deadline;
@@ -83,7 +85,7 @@ int get_stack_address(TCB *task) {
 
 void assign_TID(TCB *task) { //assigns a task ID to the task
 	for (int i = 1; i < 16; i++) {
-		if (task_queue[i].state == 0 && (task_queue[i].stack_size >= task->stack_size || task_queue[i].stack_size == 0)) {
+		if (task_queue[i].state == 0) {
 			task->tid = i;
 			return;
 		}
@@ -155,6 +157,12 @@ void scheduler() {
 int osKernelStart() {
 	if (first_run && initialized) { //if this is the first run and the kernel is initialized
 		first_run = 0; //set first run to false
+		k_mem_init();
+		TCB nulltask;
+		nulltask.stack_size = 100;
+		nulltask.ptask = &null_task;
+		nulltask.tid = 0;
+		get_stack_address(&nulltask);
 		__asm("SVC #2"); //call case 2 which is just scheduler and load new task
 		return RTX_OK;
 	} else
@@ -165,12 +173,6 @@ void osKernelInit() {
 	MSP_INIT_VAL = *(U32**) 0x0; //set the MSP_INIT_VAL to the value at address 0
 	current_task = NULL; //set the current task to null
 	initialized = 1; //set initialized to true
-	k_mem_init();
-	TCB nulltask;
-	nulltask.stack_size = STACK_SIZE;
-	nulltask.ptask = &null_task;
-	nulltask.tid = 0;
-	get_stack_address(&nulltask);
 }
 
 int osTaskInfo(task_t TID, TCB *task_copy) {
@@ -198,15 +200,15 @@ task_t osGetTID(void) {
 }
 
 int osTaskExit(void) {
-	if (!first_run && initialized) { //if this is not the first run and the kernel is initialized
-		task_queue[current_task->tid].state = 0; //set the current task to dormant
-		if(k_mem_dealloc(task_queue[current_task->tid].starting_address) == RTX_ERR)
-			return RTX_ERR;
-		task_counter--; //decrement the task counter
-		__asm("SVC #1"); //call case 2 which is just scheduler and load new task
-		return RTX_OK;
-	} else
-		return RTX_ERR;
+    if (!first_run && initialized) { //if this is not the first run and the kernel is initialized
+        if(k_mem_dealloc(task_queue[current_task->tid].starting_address) == RTX_ERR)
+            return RTX_ERR;
+        task_queue[current_task->tid].state = 0; //set the current task to dormant
+        task_counter--; //decrement the task counter
+        __asm("SVC #1"); //call case 2 which is just scheduler and load new task
+        return RTX_OK;
+    } else
+        return RTX_ERR;
 }
 
 int osCreateTask(TCB *task) {

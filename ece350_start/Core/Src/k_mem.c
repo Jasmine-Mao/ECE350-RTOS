@@ -12,6 +12,7 @@ int counter[MAX_ORDER+1] = {0};
 U32 heap_start = 0;
 U32 heap_end = 0;
 extern TCB* current_task;
+extern int taskCreated;
 
 header_block *header_array[MAX_ORDER+1] = {NULL};  // array of 11 pointers for the 11 levels; initially set to NULL
 
@@ -107,7 +108,9 @@ void *k_mem_alloc(size_t size){
         // now we have a free block we can manipulate
 
         header_array[block_level]->status = 1;
-        header_array[block_level]->owner = current_task->tid;
+        if (taskCreated) header_array[block_level]->owner = taskCreated;
+        else header_array[block_level]->owner = current_task->tid;
+        taskCreated = 0;
         counter[tracker]--;
         void *pointer = (char*)header_array[block_level]+sizeof(header_block);
         header_array[block_level] = (header_block*)header_array[block_level]->next;
