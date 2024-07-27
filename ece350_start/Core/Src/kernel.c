@@ -30,7 +30,14 @@ int get_stack_address(TCB *task) {
 	if(starting_address == NULL)
 		return RTX_ERR;											// return error if we weren't able to allocate the correct size
 	task->starting_address = starting_address;
-	task->stack_high = task->starting_address+0x00002000; 					//set the stack high to the starting address
+	int block_order = 0;
+	for(int i = MIN_BLOCK_ORDER; i <= MIN_BLOCK_ORDER + MAX_ORDER; i++){
+		if((task->stack_size + sizeof(header_block)) <= (i << i)){
+			block_order = i;
+			break;
+		}
+	}
+	task->stack_high = task->starting_address + (1 << block_order) - sizeof(header_block); 					//set the stack high to the starting address
 	task->state = 1; 											//set the state to ready
 	task->deadline = DEFAULT_DEADLINE; 							// give the created task a default deadline of 5ms
 	task->remaining_time = task->deadline;
