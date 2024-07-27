@@ -168,6 +168,8 @@ int osKernelStart() {
 		TCB nulltask;
 		nulltask.stack_size = 100;
 		nulltask.ptask = &null_task;
+		nulltask.deadline = 2147483647;
+		nulltask.remaining_time = 2147483647;
 		nulltask.tid = 0;
 		get_stack_address(&nulltask);
 		__asm("SVC #2"); //call case 2 which is just scheduler and load new task
@@ -237,6 +239,7 @@ int osCreateTask(TCB *task) {
 void osYield(void) {
 	if (!first_run && initialized){
 		current_task->remaining_time = current_task->deadline;
+		task_queue[current_task->tid].remaining_time = current_task->deadline;
 		__asm("SVC #1"); //call case 1 which is to enter PendSV which is store, scheduler and load
 	}
 }
