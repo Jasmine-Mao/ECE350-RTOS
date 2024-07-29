@@ -26,7 +26,6 @@
 
 extern TCB* current_task;
 extern TCB task_queue[MAX_TASKS];
-extern int allSleeping;
 
 extern void Case2(void);
 extern void osYield();
@@ -236,7 +235,7 @@ void SysTick_Handler(void) {
 		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
 		__asm("isb"); //instruction synchronization barrier same as in case 2
 	}
-	if (allSleeping && doneSleeping){
+	if (doneSleeping){
 		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
 		__asm("isb"); //instruction synchronization barrier same as in case 2
 	}
