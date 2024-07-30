@@ -14,7 +14,6 @@ int first_run = 1;
 int task_counter = 0;
 int current_tid_index = 0;	// indexer for what task is currently running
 int skip_yield = 0;
-int allSleeping = 0;
 int taskCreated = 0;
 
 
@@ -150,7 +149,6 @@ void scheduler() {
 		do {
 			current_tid_index = find_earliest_deadline(); // Increment the index
 			if (task_queue[current_tid_index].state == 1 || !current_tid_index) { //If the task is available/ready
-				if (!current_tid_index) allSleeping = 1;
 				task_queue[current_tid_index].state = 2; //Set the task to running
 				current_task = &task_queue[current_tid_index]; // Same as old scheduler
 				__set_PSP(current_task->stack_high); // Set the PSP to the stack high
@@ -260,10 +258,11 @@ void osPeriodYield(){
 }
 
 int osSetDeadline(int deadline, task_t tid){
-	if (deadline <= 0 || task_queue[tid].state == 0) return RTX_ERR;
+	if (deadline <= 0 || task_queue[tid].state != 1 || current_task->tid == tid || tid == NULL) return RTX_ERR;
 	else{
 		task_queue[tid].deadline = deadline;
 		task_queue[tid].remaining_time = deadline;
+		if (deadline < current_task->deadline) __asm("SVC #1");
 		// look for the given tid in the task array
 		// set the deadline to the specified
 		// once again pick the smallest deadline task to run (EDF)
@@ -282,7 +281,6 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 		if (osSetDeadline(deadline, task->tid) == RTX_ERR) return RTX_ERR;
 	}
 	else return RTX_ERR;
-	osPeriodYield();
 	return RTX_OK;
 }
 
