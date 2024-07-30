@@ -164,7 +164,7 @@ int osKernelStart() {
 		first_run = 0; //set first run to false
 		k_mem_init();
 		TCB nulltask;
-		nulltask.stack_size = 100;
+		nulltask.stack_size = 492;
 		nulltask.ptask = &null_task;
 		nulltask.deadline = 2147483647;
 		nulltask.remaining_time = 2147483647;
@@ -222,13 +222,11 @@ int osCreateTask(TCB *task) {
 	if (task != NULL && task_counter < MAX_TASKS
 			&& task->stack_size >= STACK_SIZE
 			&& task->stack_size <= MAX_STACK_SIZE
-			&& task->ptask != NULL) {// the stacksize of the given task has double the size of the specified stack size from common.h
+			&& task->ptask != NULL && task_counter < 15) {// the stacksize of the given task has double the size of the specified stack size from common.h
 		assign_TID(task); //assign a TID to the task
 		if (get_stack_address(task) == RTX_ERR) return RTX_ERR; //get the stack address for the task
 		task_counter++; //increment the task counter
-		if (!skip_yield){
-			osYield();
-		}
+		if (DEFAULT_DEADLINE < current_task->deadline && !skip_yield) __asm("SVC #1");
 		return RTX_OK;
 	} else
 		return RTX_ERR;
