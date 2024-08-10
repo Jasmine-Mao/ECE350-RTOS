@@ -1,5 +1,6 @@
 #include "common.h"
 #include "k_mem.h"
+#include "k_task.h"
 #include "main.h"
 #include "stm32f4xx_it.h"
 #include "kernel.h"
@@ -17,12 +18,17 @@ extern int taskCreated;
 header_block *header_array[MAX_ORDER+1] = {NULL};  // array of 11 pointers for the 11 levels; initially set to NULL
 
 int k_mem_init(){
+	__disable_irq();
     // if the kernel has already been initialized
     if(initialized == 0 || k_mem_initialized == 1){
+    	__enable_irq();
         return RTX_ERR;
         // if the kernel is not intialized or if the k mem init has already run once
     }
     else{
+    	SHPR3 = (SHPR3 & ~(0xFFU << 24)) | (0xF0U << 24);//SysTick is lowest priority (highest number)
+    	SHPR3 = (SHPR3 & ~(0xFFU << 16)) | (0xE0U << 16);//PendSV is in the middle
+    	SHPR2 = (SHPR2 & ~(0xFFU << 24)) | (0xD0U << 24);//SVC is highest priority (lowest number)
         k_mem_initialized = 1;
         heap_start = (U32)&_img_end; //set the start of the heap to the end of the image
         heap_end = (U32)&_estack - (U32)&_Min_Stack_Size; //set the end of the heap to _estack - _Min_Stack_Size
@@ -93,7 +99,7 @@ void *k_mem_alloc(size_t size){
 
             buddy2->magic_number = MAGIC_NUMBER;
 
-            buddy1->next = buddy2;
+            buddy1->next = (struct header_block *) buddy2;
             buddy2->next = NULL;
 
             counter[tracker]--;
@@ -137,12 +143,12 @@ int k_mem_dealloc(void *ptr){
             block_found->status = 0;
 
 			if (header_array[block_level] > block_found || header_array[block_level] == NULL){
-				block_found->next = header_array[block_level];
+				block_found->next = (struct header_block *) header_array[block_level];
 				header_array[block_level] = block_found;
 			}
 			else{
 				block_found->next = header_array[block_level]->next;
-				header_array[block_level]->next = block_found;
+				header_array[block_level]->next = (struct header_block *) block_found;
 				block_found = header_array[block_level];
 			}
             counter[block_level]++;
@@ -165,11 +171,11 @@ int k_mem_dealloc(void *ptr){
                             break;
                             // the pointer of the node nows skips over the found buddy block, so the node is no longer in the free list
                         }
-                        temp = temp->next;
+                        temp = (header_block *) temp->next;
                     }
                     // we should never reach here without finding the corresponding buddy node
                     // now we remove the recently added note
-                    header_array[block_level] = header_array[block_level]->next;
+                    header_array[block_level] = (header_block *) header_array[block_level]->next;
 
                     counter[block_level]--;
                     counter[block_level]--;
@@ -178,7 +184,7 @@ int k_mem_dealloc(void *ptr){
                     block_level++;
 
                     // add the new free block to the LL above
-                    block_found->next = header_array[block_level];
+                    block_found->next = (struct header_block *) header_array[block_level];
                     block_found->size <<= 1;
                     header_array[block_level] = block_found;
 

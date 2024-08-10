@@ -137,6 +137,26 @@ TCB* find_TCB(task_t tid_input) { //finds the TCB with the given TID [REDUNDANT]
 // 		} while (current_tid_index != start_index); // Loop until we come back to the start index so we don't do infinite loop
 // 	}
 // }
+int find_earliest_deadline(){
+	int earliest_deadline = 0;
+	int earliest_deadline_tid = 0;
+	for(int i = 1; i < MAX_TASKS; i++){
+		if(task_queue[i].state == 1 || task_queue[i].state == 2){
+			if(earliest_deadline == 0){
+				earliest_deadline = task_queue[i].remaining_time;
+				earliest_deadline_tid = i;
+			}
+			else if(task_queue[i].remaining_time < earliest_deadline){
+				earliest_deadline = task_queue[i].remaining_time;
+				earliest_deadline_tid = i;
+			}
+			else if(task_queue[i].remaining_time == earliest_deadline){
+				earliest_deadline_tid = (earliest_deadline_tid < i) ? earliest_deadline_tid : i;
+			}
+		}
+	}
+	return earliest_deadline_tid;
+}
 
 //change scheduler to use earliest deadline first
 void scheduler() {
@@ -170,6 +190,7 @@ int osKernelStart() {
 		get_stack_address(&nulltask);
 		task_queue[0].deadline = 2147483647;
 		task_queue[0].remaining_time = 2147483647;
+		__enable_irq();
 		__asm("SVC #2"); //call case 2 which is just scheduler and load new task
 		return RTX_OK;
 	} else
@@ -177,9 +198,11 @@ int osKernelStart() {
 }
 
 void osKernelInit() {
+	__disable_irq();
 	MSP_INIT_VAL = *(U32**) 0x0; //set the MSP_INIT_VAL to the value at address 0
 	current_task = NULL; //set the current task to null
 	initialized = 1; //set initialized to true
+	k_mem_init();
 }
 
 int osTaskInfo(task_t TID, TCB *task_copy) {
@@ -256,15 +279,16 @@ void osPeriodYield(){
 }
 
 int osSetDeadline(int deadline, task_t tid){
-	if (deadline <= 0 || task_queue[tid].state != 1 || current_task->tid == tid || tid == NULL) return RTX_ERR;
+	__disable_irq();
+	if (deadline <= 0 || task_queue[tid].state != 1 || current_task->tid == tid || tid == NULL){
+		if (!first_run) __enable_irq();
+		return RTX_ERR;
+	}
 	else{
 		task_queue[tid].deadline = deadline;
 		task_queue[tid].remaining_time = deadline;
-		if (deadline < current_task->deadline && !first_run) __asm("SVC #1");
-		// look for the given tid in the task array
-		// set the deadline to the specified
-		// once again pick the smallest deadline task to run (EDF)
 	}
+	if (!first_run) __enable_irq();
 	return RTX_OK;
 }
 
@@ -281,25 +305,4 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 	else return RTX_ERR;
 	if (deadline < current_task->deadline && !first_run) __asm("SVC #1");
 	return RTX_OK;
-}
-
-int find_earliest_deadline(){
-	int earliest_deadline = 0;
-	int earliest_deadline_tid = 0;
-	for(int i = 1; i < MAX_TASKS; i++){
-		if(task_queue[i].state == 1 || task_queue[i].state == 2){
-			if(earliest_deadline == 0){
-				earliest_deadline = task_queue[i].remaining_time;
-				earliest_deadline_tid = i;
-			}
-			else if(task_queue[i].remaining_time < earliest_deadline){
-				earliest_deadline = task_queue[i].remaining_time;
-				earliest_deadline_tid = i;
-			}
-			else if(task_queue[i].remaining_time == earliest_deadline){
-				earliest_deadline_tid = (earliest_deadline_tid < i) ? earliest_deadline_tid : i;
-			}
-		}
-	}
-	return earliest_deadline_tid;
 }
