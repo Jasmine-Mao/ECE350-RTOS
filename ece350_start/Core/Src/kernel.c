@@ -99,7 +99,7 @@ void assign_TID(TCB *task) { //assigns a task ID to the task
 }
 
 int is_empty() { //checks if the task queue is empty
-	for (int i = 1; i < 16; i++) {
+	for (int i = 0; i < 16; i++) {
 		if (task_queue[i].state != 0)
 			return 0;
 	}
@@ -166,10 +166,10 @@ int osKernelStart() {
 		TCB nulltask;
 		nulltask.stack_size = 492;
 		nulltask.ptask = &null_task;
-		nulltask.deadline = 2147483647;
-		nulltask.remaining_time = 2147483647;
 		nulltask.tid = 0;
 		get_stack_address(&nulltask);
+		task_queue[0].deadline = 2147483647;
+		task_queue[0].remaining_time = 2147483647;
 		__asm("SVC #2"); //call case 2 which is just scheduler and load new task
 		return RTX_OK;
 	} else
@@ -226,7 +226,7 @@ int osCreateTask(TCB *task) {
 		assign_TID(task); //assign a TID to the task
 		if (get_stack_address(task) == RTX_ERR) return RTX_ERR; //get the stack address for the task
 		task_counter++; //increment the task counter
-		if (DEFAULT_DEADLINE < current_task->deadline && !skip_yield) __asm("SVC #1");
+		if (DEFAULT_DEADLINE < current_task->deadline && !skip_yield && !first_run) __asm("SVC #1");
 		return RTX_OK;
 	} else
 		return RTX_ERR;
@@ -260,7 +260,7 @@ int osSetDeadline(int deadline, task_t tid){
 	else{
 		task_queue[tid].deadline = deadline;
 		task_queue[tid].remaining_time = deadline;
-		if (deadline < current_task->deadline) __asm("SVC #1");
+		if (deadline < current_task->deadline && !first_run) __asm("SVC #1");
 		// look for the given tid in the task array
 		// set the deadline to the specified
 		// once again pick the smallest deadline task to run (EDF)
@@ -279,6 +279,7 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 		if (osSetDeadline(deadline, task->tid) == RTX_ERR) return RTX_ERR;
 	}
 	else return RTX_ERR;
+	if (deadline < current_task->deadline && !first_run) __asm("SVC #1");
 	return RTX_OK;
 }
 

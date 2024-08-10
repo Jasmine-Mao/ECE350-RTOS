@@ -13,9 +13,10 @@
 #ifndef INC_COMMON_H_
 #define INC_COMMON_H_
 
-typedef unsigned int U32;
-typedef unsigned short U16;
-typedef char U8;
+#define U32 unsigned int
+#define U16 unsigned short
+#define U8 char
+
 typedef unsigned int task_t;
 
 #define MAX_STACK_SIZE 0x4000
