@@ -1,5 +1,6 @@
 #include "common.h"
 #include "k_mem.h"
+#include "k_task.h"
 #include "main.h"
 #include "stm32f4xx_it.h"
 #include "kernel.h"
@@ -23,6 +24,9 @@ int k_mem_init(){
         // if the kernel is not intialized or if the k mem init has already run once
     }
     else{
+    	SHPR3 = (SHPR3 & ~(0xFFU << 24)) | (0xF0U << 24);//SysTick is lowest priority (highest number)
+    	SHPR3 = (SHPR3 & ~(0xFFU << 16)) | (0xE0U << 16);//PendSV is in the middle
+    	SHPR2 = (SHPR2 & ~(0xFFU << 24)) | (0xD0U << 24);//SVC is highest priority (lowest number)
         k_mem_initialized = 1;
         heap_start = (U32)&_img_end; //set the start of the heap to the end of the image
         heap_end = (U32)&_estack - (U32)&_Min_Stack_Size; //set the end of the heap to _estack - _Min_Stack_Size
@@ -45,8 +49,9 @@ int k_mem_init(){
 
 void *k_mem_alloc(size_t size){
     //allocates size bytes of memory according to the Buddy System algorithm and returns a pointer to the start of the usable memory in the block
-
+	__disable_irq();
     if (k_mem_initialized == 0 || size == 0){
+    	__enable_irq();
         return NULL;
     }
     else{
@@ -61,6 +66,7 @@ void *k_mem_alloc(size_t size){
         }
         if(block_level == -1){
             // we didn't find an appropriate size :(
+        	__enable_irq();
             return NULL;
         }
         // check the header array at index block_level. this will be the list of free blocks or the desired size
@@ -69,7 +75,10 @@ void *k_mem_alloc(size_t size){
         int tracker = block_level;
         while(header_array[tracker] == NULL){
             tracker++; // increment tracker to look at the level above
-            if(tracker == MAX_ORDER + 1) return NULL; // if we have reached the root and the pointer is NULL, there is simply no space for our current block
+            if(tracker == MAX_ORDER + 1){
+            	__enable_irq();
+            	return NULL; // if we have reached the root and the pointer is NULL, there is simply no space for our current block
+            }
         }
         // reach here once we find a list that has a free node we can split
 
@@ -93,7 +102,7 @@ void *k_mem_alloc(size_t size){
 
             buddy2->magic_number = MAGIC_NUMBER;
 
-            buddy1->next = buddy2;
+            buddy1->next = (struct header_block *) buddy2;
             buddy2->next = NULL;
 
             counter[tracker]--;
@@ -114,14 +123,16 @@ void *k_mem_alloc(size_t size){
         counter[tracker]--;
         void *pointer = (char*)header_array[block_level]+sizeof(header_block);
         header_array[block_level] = (header_block*)header_array[block_level]->next;
-
+        __enable_irq();
         return pointer;
     }
 }
 
 
 int k_mem_dealloc(void *ptr){
+	__disable_irq();
     if(k_mem_initialized == 0 || ptr == NULL){
+    	__enable_irq();
         return RTX_ERR;
     }
     else{
@@ -137,12 +148,12 @@ int k_mem_dealloc(void *ptr){
             block_found->status = 0;
 
 			if (header_array[block_level] > block_found || header_array[block_level] == NULL){
-				block_found->next = header_array[block_level];
+				block_found->next = (struct header_block *) header_array[block_level];
 				header_array[block_level] = block_found;
 			}
 			else{
 				block_found->next = header_array[block_level]->next;
-				header_array[block_level]->next = block_found;
+				header_array[block_level]->next = (struct header_block *) block_found;
 				block_found = header_array[block_level];
 			}
             counter[block_level]++;
@@ -165,11 +176,11 @@ int k_mem_dealloc(void *ptr){
                             break;
                             // the pointer of the node nows skips over the found buddy block, so the node is no longer in the free list
                         }
-                        temp = temp->next;
+                        temp = (header_block *) temp->next;
                     }
                     // we should never reach here without finding the corresponding buddy node
                     // now we remove the recently added note
-                    header_array[block_level] = header_array[block_level]->next;
+                    header_array[block_level] = (header_block *) header_array[block_level]->next;
 
                     counter[block_level]--;
                     counter[block_level]--;
@@ -178,7 +189,7 @@ int k_mem_dealloc(void *ptr){
                     block_level++;
 
                     // add the new free block to the LL above
-                    block_found->next = header_array[block_level];
+                    block_found->next = (struct header_block *) header_array[block_level];
                     block_found->size <<= 1;
                     header_array[block_level] = block_found;
 
@@ -192,10 +203,12 @@ int k_mem_dealloc(void *ptr){
                 }
             }
             // once we're here, coalescing has ceased and he have successfully inserted a free node into any lists that needed one
+            __enable_irq();
             return RTX_OK;
 
         }
         else{
+        	__enable_irq();
             return RTX_ERR;
             // return error since the magic number was not valid
         }
@@ -203,6 +216,7 @@ int k_mem_dealloc(void *ptr){
 }
 
 int k_mem_count_extfrag(size_t size){
+	__disable_irq();
 	size_t temp = 32;
 	int index = 0;
 	int fragcount = 0;
@@ -214,5 +228,6 @@ int k_mem_count_extfrag(size_t size){
 	for(int i = index - 1; i >= 0; i--){
 		fragcount += counter[i];
 	}
+	__enable_irq();
 	return fragcount;
 }

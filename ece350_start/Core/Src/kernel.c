@@ -46,47 +46,6 @@ int get_stack_address(TCB *task) {
 		*(--task->stack_high) = 0xA; 							//An arbitrary number, repeat
 	task_queue[task->tid] = *task; 								//copy the task to the task queue
 	return RTX_OK;
-
-// //	for (int i = 1; i < MAX_TASKS; i++) {
-// 		if (task_queue[task->tid].starting_address == NULL //if the task is not initialized
-// 				&& task_queue[task->tid].state == 0) { //if the task is dormant
-// 			if (task_counter == 0) { //if this is the first task
-// 				task->starting_address = (int) MSP_INIT_VAL - MAIN_STACK_SIZE; //set the starting address to the main stack, subtract the stack size
-// 			} else {
-// 				task->starting_address = (int)task_queue[task->tid - 1].starting_address //set the starting address to the previous task's starting address
-// 						- task->stack_size; //subtract the stack size
-// 				// if the calculated address is greater than 0x4000 away from task 1's address, we immediately return an error
-// 			}
-// 			int tester = (int)MSP_INIT_VAL - (int)task->starting_address;
-// 			if(tester > MAX_STACK_SIZE){
-// 				task->starting_address = NULL;
-// 				return RTX_ERR;
-// 			}
-// 			task->stack_high = task->starting_address; //set the stack high to the starting address
-// 			task->state = 1; //set the state to ready
-// 			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
-// 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
-// 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
-// 			for (int i = 0; i < 14; i++)
-// 				*(--task->stack_high) = 0xA; //An arbitrary number, repeat
-// 			task_queue[task->tid] = *task; //copy the task to the task queue
-// 			return RTX_OK;
-// 		} else if (task_queue[task->tid].state == 0 //if the task is dormant
-// 				&& task_queue[task->tid].stack_size >= task->stack_size) { //reusing the stack
-// 			task->stack_size = task_queue[task->tid].stack_size; //set the stack size to the previous task's stack size
-// 			task->state = 1; //set the state to ready
-// 			task->deadline = DEFAULT_DEADLINE; // give the created task a default deadline of 5ms
-// 			task->starting_address = task_queue[task->tid].starting_address; //set the starting address to the previous task's starting address
-// 			task->stack_high = task_queue[task->tid].starting_address; //set the stack high to the starting address
-// 			*(--task->stack_high) = 1 << 24; //This is xPSR, setting the chip to Thumb mode
-// 			*(--task->stack_high) = (uint32_t) (task->ptask); //the function name
-// 			for (int i = 0; i < 14; i++)
-// 				*(--task->stack_high) = 0xA; //An arbitrary number, repeat this 14 times in total
-// 			task_queue[task->tid] = *task;
-// 			return RTX_OK;
-// 		}
-// 	//}
-// 	return RTX_ERR;
 }
 
 void assign_TID(TCB *task) { //assigns a task ID to the task
@@ -114,29 +73,26 @@ TCB* find_TCB(task_t tid_input) { //finds the TCB with the given TID [REDUNDANT]
 	return NULL;
 }
 
-// void scheduler() {
-// 	if (!is_empty()) { //if the task queue is not empty
-// 		if (current_task != NULL && current_task->state) { //if the current task is not null and has a state
-// 			task_queue[current_task->tid].state = 1; //set the current task to ready
-// 			task_queue[current_task->tid].stack_high = __get_PSP(); //set the stack high to the process stack pointer
-// 		}
-// 		int start_index = current_tid_index; // Save the starting index
-// 		do {
-// 			current_tid_index = (current_tid_index + 1) % MAX_TASKS; // Increment the index
-
-// 			if (current_tid_index == 0) { //If we reach null task, skip it
-// 				current_tid_index = 1;
-// 			}
-// 			if (task_queue[current_tid_index].state == 1) { //If the task is available/ready
-// 				task_queue[current_tid_index].state = 2; //Set the task to running
-// 				current_task = &task_queue[current_tid_index]; // Same as old scheduler
-// 				__set_PSP(current_task->stack_high); // Set the PSP to the stack high
-// 				// should be able to return from here after the svc call
-// 				return;
-// 			}
-// 		} while (current_tid_index != start_index); // Loop until we come back to the start index so we don't do infinite loop
-// 	}
-// }
+int find_earliest_deadline(){
+	int earliest_deadline = 0;
+	int earliest_deadline_tid = 0;
+	for(int i = 1; i < MAX_TASKS; i++){
+		if(task_queue[i].state == 1 || task_queue[i].state == 2){
+			if(earliest_deadline == 0){
+				earliest_deadline = task_queue[i].remaining_time;
+				earliest_deadline_tid = i;
+			}
+			else if(task_queue[i].remaining_time < earliest_deadline){
+				earliest_deadline = task_queue[i].remaining_time;
+				earliest_deadline_tid = i;
+			}
+			else if(task_queue[i].remaining_time == earliest_deadline){
+				earliest_deadline_tid = (earliest_deadline_tid < i) ? earliest_deadline_tid : i;
+			}
+		}
+	}
+	return earliest_deadline_tid;
+}
 
 //change scheduler to use earliest deadline first
 void scheduler() {
@@ -145,32 +101,27 @@ void scheduler() {
 			if (current_task->state != 3) task_queue[current_task->tid].state = 1; //set the current task to ready
 			task_queue[current_task->tid].stack_high = __get_PSP(); //set the stack high to the process stack pointer
 		}
-		int start_index = current_tid_index; // Save the starting index
-		do {
-			current_tid_index = find_earliest_deadline(); // Increment the index
-			if (task_queue[current_tid_index].state == 1 || !current_tid_index) { //If the task is available/ready
-				task_queue[current_tid_index].state = 2; //Set the task to running
-				current_task = &task_queue[current_tid_index]; // Same as old scheduler
-				__set_PSP(current_task->stack_high); // Set the PSP to the stack high
-				// should be able to return from here after the svc call
-				return;
-			}
-		} while (current_tid_index != start_index); // Loop until we come back to the start index so we don't do infinite loop
+		current_tid_index = find_earliest_deadline(); // Increment the index
+		task_queue[current_tid_index].state = 2; //Set the task to running
+		current_task = &task_queue[current_tid_index]; // Same as old scheduler
+		__set_PSP(current_task->stack_high); // Set the PSP to the stack high
+		return;
 	}
 }
 
 int osKernelStart() {
 	if (first_run && initialized) { //if this is the first run and the kernel is initialized
-		first_run = 0; //set first run to false
 		k_mem_init();
 		TCB nulltask;
 		nulltask.stack_size = 492;
 		nulltask.ptask = &null_task;
-		nulltask.remaining_time = 2147483647;
 		nulltask.tid = 0;
 		get_stack_address(&nulltask);
 		task_queue[0].deadline = 2147483647;
 		task_queue[0].remaining_time = 2147483647;
+		SysTick->VAL = 0;
+		first_run = 0; //set first run to false
+		__enable_irq();
 		__asm("SVC #2"); //call case 2 which is just scheduler and load new task
 		return RTX_OK;
 	} else
@@ -178,9 +129,11 @@ int osKernelStart() {
 }
 
 void osKernelInit() {
+	__disable_irq();
 	MSP_INIT_VAL = *(U32**) 0x0; //set the MSP_INIT_VAL to the value at address 0
 	current_task = NULL; //set the current task to null
 	initialized = 1; //set initialized to true
+	k_mem_init();
 }
 
 int osTaskInfo(task_t TID, TCB *task_copy) {
@@ -252,20 +205,25 @@ void osSleep(int time_in_ms){
 void osPeriodYield(){
 	if (!first_run && initialized){
 		if (current_task->remaining_time) osSleep(current_task->remaining_time);
-		else __asm("SVC #1");
+		else{
+			current_task->remaining_time = current_task->deadline;
+			task_queue[current_task->tid].remaining_time = current_task->deadline;
+			__asm("SVC #1");
+		}
 	}
 }
 
 int osSetDeadline(int deadline, task_t tid){
-	if (deadline <= 0 || task_queue[tid].state != 1 || current_task->tid == tid || tid == NULL) return RTX_ERR;
+	__disable_irq();
+	if (deadline <= 0 || task_queue[tid].state != 1 || current_task->tid == tid || tid == NULL){
+		if (!first_run) __enable_irq();
+		return RTX_ERR;
+	}
 	else{
 		task_queue[tid].deadline = deadline;
 		task_queue[tid].remaining_time = deadline;
-		if (deadline < current_task->deadline && !first_run) __asm("SVC #1");
-		// look for the given tid in the task array
-		// set the deadline to the specified
-		// once again pick the smallest deadline task to run (EDF)
 	}
+	if (!first_run) __enable_irq();
 	return RTX_OK;
 }
 
@@ -282,25 +240,4 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 	else return RTX_ERR;
 	if (deadline < current_task->deadline && !first_run) __asm("SVC #1");
 	return RTX_OK;
-}
-
-int find_earliest_deadline(){
-	int earliest_deadline = 0;
-	int earliest_deadline_tid = 0;
-	for(int i = 1; i < MAX_TASKS; i++){
-		if(task_queue[i].state == 1 || task_queue[i].state == 2){
-			if(earliest_deadline == 0){
-				earliest_deadline = task_queue[i].remaining_time;
-				earliest_deadline_tid = i;
-			}
-			else if(task_queue[i].remaining_time < earliest_deadline){
-				earliest_deadline = task_queue[i].remaining_time;
-				earliest_deadline_tid = i;
-			}
-			else if(task_queue[i].remaining_time == earliest_deadline){
-				earliest_deadline_tid = (earliest_deadline_tid < i) ? earliest_deadline_tid : i;
-			}
-		}
-	}
-	return earliest_deadline_tid;
 }
