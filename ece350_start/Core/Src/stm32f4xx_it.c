@@ -215,13 +215,14 @@ void SysTick_Handler(void) {
 	HAL_IncTick();
 	/* USER CODE BEGIN SysTick_IRQn 1 */
 	int doneSleeping = 0;
+	int deadlineReset = 0;
 	for(int i = 1; i < MAX_TASKS; i++){
 		if(task_queue[i].state == 1 || task_queue[i].state == 2){
 			// either ready or running
 			task_queue[i].remaining_time--;
 			if(task_queue[i].remaining_time == 0){
 				task_queue[i].remaining_time = task_queue[i].deadline;
-
+				deadlineReset = 1;
 			}
 		}
 		else if(task_queue[i].state == 3){
@@ -233,13 +234,7 @@ void SysTick_Handler(void) {
 			}
 		}
 	}
-	//if(current_task->tid) current_task->remaining_time--;
-	if(current_task->remaining_time == 0){
-		current_task->remaining_time = current_task->deadline;
-		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
-		__asm("isb"); //instruction synchronization barrier same as in case 2
-	}
-	if (doneSleeping){
+	if (doneSleeping || deadlineReset || !current_task->remaining_time){
 		SCB->ICSR |= 1 << 28; //control register bit for a PendSV interrupt
 		__asm("isb"); //instruction synchronization barrier same as in case 2
 	}
