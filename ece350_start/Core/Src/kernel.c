@@ -215,13 +215,17 @@ void osPeriodYield(){
 
 int osSetDeadline(int deadline, task_t tid){
 	__disable_irq();
-	if (deadline <= 0 || task_queue[tid].state != 1 || current_task->tid == tid || tid == NULL){
+	if (deadline <= 0 || task_queue[tid].state != 1 || current_task->tid == tid || tid == 0){
 		if (!first_run) __enable_irq();
 		return RTX_ERR;
 	}
 	else{
 		task_queue[tid].deadline = deadline;
 		task_queue[tid].remaining_time = deadline;
+		if (deadline < current_task->deadline && !first_run){
+			__enable_irq();
+			__asm("SVC #1");
+		}
 	}
 	if (!first_run) __enable_irq();
 	return RTX_OK;
@@ -238,6 +242,5 @@ int osCreateDeadlineTask(int deadline, TCB* task){
 		if (osSetDeadline(deadline, task->tid) == RTX_ERR) return RTX_ERR;
 	}
 	else return RTX_ERR;
-	if (deadline < current_task->deadline && !first_run) __asm("SVC #1");
 	return RTX_OK;
 }
